@@ -771,7 +771,7 @@ func Timestamp() string {
 }
 
 func (d DateTime) century() string {
-	return randomElementFromSliceString(century)
+	return RandomElementFromSliceString(century)
 }
 
 // Century returns a random century
@@ -786,7 +786,7 @@ func Century() string {
 }
 
 func (d DateTime) timezone() string {
-	return randomElementFromSliceString(timezones)
+	return RandomElementFromSliceString(timezones)
 }
 
 // TimeZone returns a random timezone

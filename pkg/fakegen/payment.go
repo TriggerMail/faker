@@ -89,7 +89,7 @@ func (p Payment) ccnumber() string {
 	prefix := strconv.Itoa(card.prefixes[rand.Intn(len(card.prefixes))])
 
 	num := prefix
-	digit := randomStringNumber(card.length - len(prefix))
+	digit := RandomStringNumber(card.length - len(prefix))
 
 	num += digit
 	return num

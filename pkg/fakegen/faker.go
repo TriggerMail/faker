@@ -403,10 +403,10 @@ func getValue(a interface{}) (reflect.Value, error) {
 		}
 
 	case reflect.String:
-		res := randomString(randomStringLen)
+		res := RandomString(randomStringLen)
 		return reflect.ValueOf(res), nil
 	case reflect.Array, reflect.Slice:
-		len := randomSliceAndMapSize()
+		len := RandomSliceAndMapSize()
 		if shouldSetNil && len == 0 {
 			return reflect.Zero(t), nil
 		}
@@ -420,15 +420,15 @@ func getValue(a interface{}) (reflect.Value, error) {
 		}
 		return v, nil
 	case reflect.Int:
-		return reflect.ValueOf(randomInteger()), nil
+		return reflect.ValueOf(RandomInteger()), nil
 	case reflect.Int8:
-		return reflect.ValueOf(int8(randomInteger())), nil
+		return reflect.ValueOf(int8(RandomInteger())), nil
 	case reflect.Int16:
-		return reflect.ValueOf(int16(randomInteger())), nil
+		return reflect.ValueOf(int16(RandomInteger())), nil
 	case reflect.Int32:
-		return reflect.ValueOf(int32(randomInteger())), nil
+		return reflect.ValueOf(int32(RandomInteger())), nil
 	case reflect.Int64:
-		return reflect.ValueOf(int64(randomInteger())), nil
+		return reflect.ValueOf(int64(RandomInteger())), nil
 	case reflect.Float32:
 		return reflect.ValueOf(rand.Float32()), nil
 	case reflect.Float64:
@@ -438,22 +438,22 @@ func getValue(a interface{}) (reflect.Value, error) {
 		return reflect.ValueOf(val), nil
 
 	case reflect.Uint:
-		return reflect.ValueOf(uint(randomInteger())), nil
+		return reflect.ValueOf(uint(RandomInteger())), nil
 
 	case reflect.Uint8:
-		return reflect.ValueOf(uint8(randomInteger())), nil
+		return reflect.ValueOf(uint8(RandomInteger())), nil
 
 	case reflect.Uint16:
-		return reflect.ValueOf(uint16(randomInteger())), nil
+		return reflect.ValueOf(uint16(RandomInteger())), nil
 
 	case reflect.Uint32:
-		return reflect.ValueOf(uint32(randomInteger())), nil
+		return reflect.ValueOf(uint32(RandomInteger())), nil
 
 	case reflect.Uint64:
-		return reflect.ValueOf(uint64(randomInteger())), nil
+		return reflect.ValueOf(uint64(RandomInteger())), nil
 
 	case reflect.Map:
-		len := randomSliceAndMapSize()
+		len := RandomSliceAndMapSize()
 		if shouldSetNil && len == 0 {
 			return reflect.Zero(t), nil
 		}
@@ -575,7 +575,7 @@ func setDataWithTag(v reflect.Value, tag string) error {
 }
 
 func userDefinedMap(v reflect.Value, tag string) error {
-	len := randomSliceAndMapSize()
+	len := RandomSliceAndMapSize()
 	if shouldSetNil && len == 0 {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
@@ -617,7 +617,7 @@ func getValueWithTag(t reflect.Type, tag string) (interface{}, error) {
 }
 
 func userDefinedArray(v reflect.Value, tag string) error {
-	len := randomSliceAndMapSize()
+	len := RandomSliceAndMapSize()
 	if shouldSetNil && len == 0 {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
@@ -688,7 +688,7 @@ func extractStringFromTag(tag string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	res := randomString(len)
+	res := RandomString(len)
 	return res, nil
 }
 
@@ -711,25 +711,25 @@ func extractNumberFromTag(tag string, t reflect.Type) (interface{}, error) {
 	boundary := numberBoundary{start: startBoundary, end: endBoundary}
 	switch t.Kind() {
 	case reflect.Uint:
-		return uint(randomIntegerWithBoundary(boundary)), nil
+		return uint(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Uint8:
-		return uint8(randomIntegerWithBoundary(boundary)), nil
+		return uint8(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Uint16:
-		return uint16(randomIntegerWithBoundary(boundary)), nil
+		return uint16(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Uint32:
-		return uint32(randomIntegerWithBoundary(boundary)), nil
+		return uint32(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Uint64:
-		return uint64(randomIntegerWithBoundary(boundary)), nil
+		return uint64(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Int:
-		return randomIntegerWithBoundary(boundary), nil
+		return RandomIntegerWithBoundary(boundary), nil
 	case reflect.Int8:
-		return int8(randomIntegerWithBoundary(boundary)), nil
+		return int8(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Int16:
-		return int16(randomIntegerWithBoundary(boundary)), nil
+		return int16(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Int32:
-		return int32(randomIntegerWithBoundary(boundary)), nil
+		return int32(RandomIntegerWithBoundary(boundary)), nil
 	case reflect.Int64:
-		return int64(randomIntegerWithBoundary(boundary)), nil
+		return int64(RandomIntegerWithBoundary(boundary)), nil
 	default:
 		return nil, errors.New(ErrNotSupportedTypeForTag)
 	}
@@ -744,7 +744,7 @@ func extractNumberFromText(text string) (int, error) {
 	return strconv.Atoi(texts[1])
 }
 
-func randomString(n int) string {
+func RandomString(n int) string {
 	b := make([]byte, n)
 	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {
@@ -761,29 +761,29 @@ func randomString(n int) string {
 	return string(b)
 }
 
-// randomIntegerWithBoundary returns a random integer between input start and end boundary. [start, end)
-func randomIntegerWithBoundary(boundary numberBoundary) int {
+// RandomIntegerWithBoundary returns a random integer between input start and end boundary. [start, end)
+func RandomIntegerWithBoundary(boundary numberBoundary) int {
 	return rand.Intn(boundary.end-boundary.start) + boundary.start
 }
 
-// randomInteger returns a random integer between start and end boundary. [start, end)
-func randomInteger() int {
+// RandomInteger returns a random integer between start and end boundary. [start, end)
+func RandomInteger() int {
 	return rand.Intn(nBoundary.end-nBoundary.start) + nBoundary.start
 }
 
-// randomSliceAndMapSize returns a random integer between [0,randomSliceAndMapSize). If the testRandZero is set, returns 0
+// RandomSliceAndMapSize returns a random integer between [0,RandomSliceAndMapSize). If the testRandZero is set, returns 0
 // Written for test purposes for shouldSetNil
-func randomSliceAndMapSize() int {
+func RandomSliceAndMapSize() int {
 	if testRandZero {
 		return 0
 	}
 	return rand.Intn(randomSize)
 }
 
-func randomElementFromSliceString(s []string) string {
+func RandomElementFromSliceString(s []string) string {
 	return s[rand.Int()%len(s)]
 }
-func randomStringNumber(n int) string {
+func RandomStringNumber(n int) string {
 	b := make([]byte, n)
 	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
 		if remain == 0 {

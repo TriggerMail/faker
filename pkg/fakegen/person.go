@@ -129,7 +129,7 @@ type Person struct {
 }
 
 func (p Person) titlemale() string {
-	return randomElementFromSliceString(titlesMale)
+	return RandomElementFromSliceString(titlesMale)
 }
 
 // TitleMale generates random titles for males
@@ -144,7 +144,7 @@ func TitleMale() string {
 }
 
 func (p Person) titleFemale() string {
-	return randomElementFromSliceString(titlesFemale)
+	return RandomElementFromSliceString(titlesFemale)
 }
 
 // TitleFeMale generates random titles for females
@@ -159,7 +159,7 @@ func TitleFemale() string {
 }
 
 func (p Person) firstname() string {
-	return randomElementFromSliceString(firstNames)
+	return RandomElementFromSliceString(firstNames)
 }
 
 // FirstName retuns first names
@@ -174,7 +174,7 @@ func FirstName() string {
 }
 
 func (p Person) firstnamemale() string {
-	return randomElementFromSliceString(firstNamesMale)
+	return RandomElementFromSliceString(firstNamesMale)
 }
 
 // FirstNameMale retuns first names for males
@@ -189,7 +189,7 @@ func FirstNameMale() string {
 }
 
 func (p Person) firstnamefemale() string {
-	return randomElementFromSliceString(firstNamesFemale)
+	return RandomElementFromSliceString(firstNamesFemale)
 }
 
 // FirstNameFemale retuns first names for females
@@ -204,7 +204,7 @@ func FirstNameFemale() string {
 }
 
 func (p Person) lastname() string {
-	return randomElementFromSliceString(lastNames)
+	return RandomElementFromSliceString(lastNames)
 }
 
 // LastName returns last name
@@ -220,9 +220,9 @@ func LastName() string {
 
 func (p Person) name() string {
 	if randNameFlag > 50 {
-		return fmt.Sprintf("%s %s %s", randomElementFromSliceString(titlesFemale), randomElementFromSliceString(firstNamesFemale), randomElementFromSliceString(lastNames))
+		return fmt.Sprintf("%s %s %s", RandomElementFromSliceString(titlesFemale), RandomElementFromSliceString(firstNamesFemale), RandomElementFromSliceString(lastNames))
 	}
-	return fmt.Sprintf("%s %s %s", randomElementFromSliceString(titlesMale), randomElementFromSliceString(firstNamesMale), randomElementFromSliceString(lastNames))
+	return fmt.Sprintf("%s %s %s", RandomElementFromSliceString(titlesMale), RandomElementFromSliceString(firstNamesMale), RandomElementFromSliceString(lastNames))
 }
 
 // Name returns a random name

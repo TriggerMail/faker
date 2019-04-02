@@ -61,7 +61,7 @@ func SetPrice(p Money) {
 }
 
 func (p Price) currency() string {
-	return randomElementFromSliceString(currencies)
+	return RandomElementFromSliceString(currencies)
 }
 
 // Currency returns a random currency from currencies

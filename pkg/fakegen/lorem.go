@@ -76,7 +76,7 @@ type Lorem struct {
 }
 
 func (l Lorem) word() string {
-	return randomElementFromSliceString(wordList)
+	return RandomElementFromSliceString(wordList)
 }
 
 // Word returns a word from the wordList const

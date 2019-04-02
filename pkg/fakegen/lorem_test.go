@@ -2,7 +2,7 @@ package fakegen
 
 import (
 	"fmt"
-	"github.com/jfbramlett/faker"
+	"github.com/jfbramlett/faker/pkg/slice"
 	"reflect"
 	"strings"
 	"testing"
@@ -17,7 +17,7 @@ func TestWord(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !faker.Contains(wordList, word.(string)) {
+	if !slice.Contains(wordList, word.(string)) {
 		t.Error("Expected word from slice wordList")
 	}
 }
@@ -47,7 +47,7 @@ func TestParagraph(t *testing.T) {
 
 func TestFakeWord(t *testing.T) {
 	word := Word()
-	if !faker.Contains(wordList, word) {
+	if !slice.Contains(wordList, word) {
 		t.Error("Expected word from slice wordList")
 	}
 }

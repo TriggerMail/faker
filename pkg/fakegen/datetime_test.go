@@ -2,7 +2,7 @@ package fakegen
 
 import (
 	"fmt"
-	"github.com/jfbramlett/faker/slice"
+	"github.com/jfbramlett/faker/pkg/slice"
 	"reflect"
 	"testing"
 	"time"
@@ -153,7 +153,7 @@ func TestTimeZone(t *testing.T) {
 	if err != nil {
 		t.Error("Expected timezone from variable timezones")
 	}
-	if !slice..Contains(timezones, tz.(string)) {
+	if !slice.Contains(timezones, tz.(string)) {
 		t.Error("Expected timezone from variable timezones")
 	}
 }

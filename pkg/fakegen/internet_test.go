@@ -1,7 +1,7 @@
 package fakegen
 
 import (
-	"github.com/jfbramlett/faker"
+	"github.com/jfbramlett/faker/pkg/slice"
 	"reflect"
 	"strings"
 	"testing"
@@ -35,7 +35,7 @@ func TestDomainName(t *testing.T) {
 
 	preTld := strings.Split(domain.(string), ".")
 
-	if !faker.Contains(tld, preTld[1]) {
+	if !slice.Contains(tld, preTld[1]) {
 		t.Error("Expected get DomainName")
 	}
 }
@@ -120,7 +120,7 @@ func TestFakeDomainName(t *testing.T) {
 	domain := DomainName()
 	preTld := strings.Split(domain, ".")
 
-	if !faker.Contains(tld, preTld[1]) {
+	if !slice.Contains(tld, preTld[1]) {
 		t.Error("Expected get DomainName")
 	}
 }

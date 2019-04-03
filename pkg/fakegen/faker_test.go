@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -886,6 +887,41 @@ func TestFieldExclusions(t *testing.T) {
 
 	if test.Email == "" {
 		t.Error("expected filled but got empty")
+	}
+
+	if test.XXX_Field1 != "" {
+		t.Fatalf("expected emoty but got %s", test.XXX_Field1)
+	}
+
+	if test.XXX_Field2 != "" {
+		t.Fatalf("expected emoty but got %s", test.XXX_Field2)
+	}
+}
+
+func TestFieldExternalTag(t *testing.T) {
+	type TestStruct struct {
+		FirstName 	string `json:"first_name,omitempty" faker:"first_name_male"`
+		Email     	string `json:"email,omitempty"`
+		XXX_Field1	string `json:"-"`
+		XXX_Field2	string `json:"-"`
+	}
+
+	test := TestStruct{}
+
+	AddFieldFilter("XXX.*")
+	SetFieldTags(map[string]string {"Email": "email"})
+	defer ClearFieldTags()
+	err := FakeData(&test)
+	if err != nil {
+		t.Error("expected not error, but got: ", err)
+	}
+
+	if test.FirstName == "" {
+		t.Fatalf("expected first name but was empty")
+	}
+
+	if test.Email == "" || !strings.Contains(test.Email, "@") {
+		t.Fatalf("expected email but was %s", test.Email)
 	}
 
 	if test.XXX_Field1 != "" {

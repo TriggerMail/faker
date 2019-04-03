@@ -518,7 +518,9 @@ func decodeTags(typ reflect.Type, i int) structTag {
 			keepOriginal = true
 			continue
 		}
-		res = append(res, tag)
+		if tag != "" {
+			res = append(res, tag)
+		}
 	}
 	tag, found := fieldTags[typ.Field(i).Name]
 	if found {

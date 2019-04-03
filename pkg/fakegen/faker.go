@@ -183,6 +183,7 @@ var mapperTag = map[string]TaggedFunction{
 }
 
 var fieldFilter = make([]*regexp.Regexp, 0)
+var fieldTags = make(map[string]string)
 
 // Generic Error Messages for tags
 // 		ErrUnsupportedKindPtr: Error when get fake from ptr
@@ -248,6 +249,15 @@ func AddFieldFilter(regexStr string) {
 	reg := regexp.MustCompile(regexStr)
 	fieldFilter = append(fieldFilter, reg)
 }
+
+func SetFieldTags(tags map[string]string) {
+	fieldTags = tags
+}
+
+func ClearFieldTags() {
+	fieldTags = make(map[string]string)
+}
+
 
 // FakeData is the main function. Will generate a fake data based on your struct.  You can use this for automation testing, or anything that need automated data.
 // You don't need to Create your own data for your testing.
@@ -508,6 +518,10 @@ func decodeTags(typ reflect.Type, i int) structTag {
 			keepOriginal = true
 			continue
 		}
+		res = append(res, tag)
+	}
+	tag, found := fieldTags[typ.Field(i).Name]
+	if found {
 		res = append(res, tag)
 	}
 

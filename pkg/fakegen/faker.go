@@ -208,6 +208,7 @@ func NewFakeGenerator() *FakeGenerator {
 	for k, v := range mapperTag {
 		fg.tagProviders[k] = v
 	}
+	fg.init()
 	return &fg
 }
 

@@ -5,6 +5,7 @@ package fakegen
 import (
 	"errors"
 	"fmt"
+	"github.com/spf13/cast"
 	"math/rand"
 	"reflect"
 	"regexp"
@@ -696,6 +697,7 @@ func (f *FakeGenerator) userDefinedNumber(v reflect.Value, tag string) error {
 		if err != nil {
 			return err
 		}
+		res = f.castNumber(res, v.Type())
 	} else {
 		res, err = f.extractNumberFromTag(tag, v.Type())
 		if err != nil {
@@ -720,6 +722,36 @@ func (f *FakeGenerator) extractStringFromTag(tag string) (interface{}, error) {
 	}
 	res := RandomString(len)
 	return res, nil
+}
+
+func (f *FakeGenerator) castNumber(val interface{}, t reflect.Type) interface{} {
+	switch t.Kind() {
+	case reflect.Uint:
+		return cast.ToUint(val)
+	case reflect.Uint8:
+		return cast.ToUint8(val)
+	case reflect.Uint16:
+		return cast.ToUint16(val)
+	case reflect.Uint32:
+		return cast.ToUint32(val)
+	case reflect.Uint64:
+		return cast.ToUint64(val)
+	case reflect.Int:
+		return cast.ToInt(val)
+	case reflect.Int8:
+		return cast.ToInt8(val)
+	case reflect.Int16:
+		return cast.ToInt16(val)
+	case reflect.Int32:
+		return cast.ToInt32(val)
+	case reflect.Int64:
+		return cast.ToInt64(val)
+	case reflect.Float32:
+		return cast.ToFloat32(val)
+	case reflect.Float64:
+		return cast.ToFloat64(val)
+	}
+	return val
 }
 
 func (f *FakeGenerator) extractNumberFromTag(tag string, t reflect.Type) (interface{}, error) {

@@ -14,19 +14,7 @@ import (
 	"time"
 )
 
-var (
-	mu = &sync.Mutex{}
-	// Sets nil if the value type is struct or map and the size of it equals to zero.
-	shouldSetNil = false
-	//Sets random integer generation to zero for slice and maps
-	testRandZero = false
-	//Sets the default number of string when it is created randomly.
-	randomStringLen = 25
-	//Sets the boundary for random value generation. Boundaries can not exceed integer(4 byte...)
-	nBoundary = numberBoundary{start: 0, end: 100}
-	//Sets the random size for slices and maps.
-	randomSize = 100
-)
+var mu = &sync.Mutex{}
 
 type numberBoundary struct {
 	start int
@@ -182,9 +170,6 @@ var mapperTag = map[string]TaggedFunction{
 	HyphenatedID:          GetIdentifier().Hyphenated,
 }
 
-var fieldFilter = make([]*regexp.Regexp, 0)
-var fieldTags = make(map[string]string)
-
 // Generic Error Messages for tags
 // 		ErrUnsupportedKindPtr: Error when get fake from ptr
 // 		ErrUnsupportedKind: Error on passing unsupported kind
@@ -209,59 +194,87 @@ var (
 	ErrNotSupportedTypeForTag  = "Type is not supported by tag."
 )
 
-func init() {
+
+func NewFakeGenerator() *FakeGenerator {
+	fg := FakeGenerator{fieldTags: make(map[string]string),
+		tagProviders: make(map[string]TaggedFunction),
+		fieldFilter: make([]*regexp.Regexp, 0),
+		shouldSetNil: false,
+		randomStringLen: 25,
+		randomSize: 100,
+		nBoundary: numberBoundary{start: 0, end: 100},
+		testRandZero: false}
+
+	for k, v := range mapperTag {
+		fg.tagProviders[k] = v
+	}
+	return &fg
+}
+
+type FakeGenerator struct {
+	fieldTags 			map[string]string
+	tagProviders		map[string]TaggedFunction
+	fieldFilter 		[]*regexp.Regexp
+	shouldSetNil		bool
+	randomStringLen		int
+	randomSize			int
+	nBoundary			numberBoundary
+	testRandZero		bool
+}
+
+func (f *FakeGenerator) init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
 // SetNilIfLenIsZero allows to set nil for the slice and maps, if size is 0.
-func SetNilIfLenIsZero(setNil bool) {
-	shouldSetNil = setNil
+func (f *FakeGenerator) SetNilIfLenIsZero(setNil bool) {
+	f.shouldSetNil = setNil
 }
 
 // SetRandomStringLength sets a length for random string generation
-func SetRandomStringLength(size int) error {
+func (f *FakeGenerator) SetRandomStringLength(size int) error {
 	if size < 0 {
 		return fmt.Errorf(ErrSmallerThanZero, size)
 	}
-	randomStringLen = size
+	f.randomStringLen = size
 	return nil
 }
 
 // SetRandomMapAndSliceSize sets the size for maps and slices for random generation.
-func SetRandomMapAndSliceSize(size int) error {
+func (f *FakeGenerator) SetRandomMapAndSliceSize(size int) error {
 	if size < 0 {
 		return fmt.Errorf(ErrSmallerThanZero, size)
 	}
-	randomSize = size
+	f.randomSize = size
 	return nil
 }
 
 // SetRandomNumberBoundaries sets boundary for random number generation
-func SetRandomNumberBoundaries(start, end int) error {
+func (f *FakeGenerator) SetRandomNumberBoundaries(start, end int) error {
 	if start > end {
 		return errors.New(ErrStartValueBiggerThanEnd)
 	}
-	nBoundary = numberBoundary{start: start, end: end}
+	f.nBoundary = numberBoundary{start: start, end: end}
 	return nil
 }
 
-func AddFieldFilter(regexStr string) {
+func (f *FakeGenerator) SetTestRandZero(trz bool) {
+	f.testRandZero = trz
+}
+
+func (f *FakeGenerator) AddFieldFilter(regexStr string) {
 	reg := regexp.MustCompile(regexStr)
-	fieldFilter = append(fieldFilter, reg)
+	f.fieldFilter = append(f.fieldFilter, reg)
 }
 
-func SetFieldTags(tags map[string]string) {
-	fieldTags = tags
-}
-
-func ClearFieldTags() {
-	fieldTags = make(map[string]string)
+func (f *FakeGenerator) AddFieldTag(field, tag string) {
+	f.fieldTags[field] = tag
 }
 
 
 // FakeData is the main function. Will generate a fake data based on your struct.  You can use this for automation testing, or anything that need automated data.
 // You don't need to Create your own data for your testing.
-func FakeData(a interface{}) error {
+func (f *FakeGenerator) FakeData(a interface{}) error {
 
 	reflectType := reflect.TypeOf(a)
 
@@ -275,7 +288,7 @@ func FakeData(a interface{}) error {
 
 	rval := reflect.ValueOf(a)
 
-	finalValue, err := getValue(a)
+	finalValue, err := f.getValue(a)
 	if err != nil {
 		return err
 	}
@@ -327,17 +340,17 @@ func FakeData(a interface{}) error {
 // Will print
 // 		{ID:43 Gondoruwo:{Name:Power Locatadata:324} Danger:danger-ranger}
 // Notes: when using a custom provider make sure to return the same type as the field
-func AddProvider(tag string, provider TaggedFunction) error {
-	if _, ok := mapperTag[tag]; ok {
+func (f *FakeGenerator) AddProvider(tag string, provider TaggedFunction) error {
+	if _, ok := f.tagProviders[tag]; ok {
 		return errors.New(ErrTagAlreadyExists)
 	}
 
-	mapperTag[tag] = provider
+	f.tagProviders[tag] = provider
 
 	return nil
 }
 
-func getValue(a interface{}) (reflect.Value, error) {
+func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 	t := reflect.TypeOf(a)
 	if t == nil {
 		return reflect.Value{}, fmt.Errorf("interface{} not allowed")
@@ -350,12 +363,12 @@ func getValue(a interface{}) (reflect.Value, error) {
 		var val reflect.Value
 		var err error
 		if a != reflect.Zero(reflect.TypeOf(a)).Interface() {
-			val, err = getValue(reflect.ValueOf(a).Elem().Interface())
+			val, err = f.getValue(reflect.ValueOf(a).Elem().Interface())
 			if err != nil {
 				return reflect.Value{}, err
 			}
 		} else {
-			val, err = getValue(v.Elem().Interface())
+			val, err = f.getValue(v.Elem().Interface())
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -373,19 +386,19 @@ func getValue(a interface{}) (reflect.Value, error) {
 			typeOfV := v.Type()
 
 			for i := 0; i < v.NumField(); i++ {
-				if !v.Field(i).CanSet() || isExcluded(typeOfV.Field(i).Name) {
+				if !v.Field(i).CanSet() || f.isExcluded(typeOfV.Field(i).Name) {
 					continue // to avoid panic to set on unexported field in struct
 				}
-				tags := decodeTags(t, i)
+				tags := f.decodeTags(t, i)
 
 				switch {
 				case tags.keepOriginal:
-					zero, err := isZero(reflect.ValueOf(a).Field(i))
+					zero, err := f.isZero(reflect.ValueOf(a).Field(i))
 					if err != nil {
 						return reflect.Value{}, err
 					}
 					if zero {
-						err := setDataWithTag(v.Field(i).Addr(), tags.fieldType)
+						err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType)
 						if err != nil {
 							return reflect.Value{}, err
 						}
@@ -393,7 +406,7 @@ func getValue(a interface{}) (reflect.Value, error) {
 					}
 					v.Field(i).Set(reflect.ValueOf(a).Field(i))
 				case tags.fieldType == "":
-					val, err := getValue(v.Field(i).Interface())
+					val, err := f.getValue(v.Field(i).Interface())
 					if err != nil {
 						return reflect.Value{}, err
 					}
@@ -402,7 +415,7 @@ func getValue(a interface{}) (reflect.Value, error) {
 				case tags.fieldType == SKIP:
 					continue
 				default:
-					err := setDataWithTag(v.Field(i).Addr(), tags.fieldType)
+					err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType)
 					if err != nil {
 						return reflect.Value{}, err
 					}
@@ -413,16 +426,16 @@ func getValue(a interface{}) (reflect.Value, error) {
 		}
 
 	case reflect.String:
-		res := RandomString(randomStringLen)
+		res := RandomString(f.randomStringLen)
 		return reflect.ValueOf(res), nil
 	case reflect.Array, reflect.Slice:
-		len := RandomSliceAndMapSize()
-		if shouldSetNil && len == 0 {
+		len := f.randomSliceAndMapSize()
+		if f.shouldSetNil && len == 0 {
 			return reflect.Zero(t), nil
 		}
 		v := reflect.MakeSlice(t, len, len)
 		for i := 0; i < v.Len(); i++ {
-			val, err := getValue(v.Index(i).Interface())
+			val, err := f.getValue(v.Index(i).Interface())
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -430,15 +443,15 @@ func getValue(a interface{}) (reflect.Value, error) {
 		}
 		return v, nil
 	case reflect.Int:
-		return reflect.ValueOf(RandomInteger()), nil
+		return reflect.ValueOf(RandomIntegerWithBoundary(f.nBoundary)), nil
 	case reflect.Int8:
-		return reflect.ValueOf(int8(RandomInteger())), nil
+		return reflect.ValueOf(int8(RandomIntegerWithBoundary(f.nBoundary))), nil
 	case reflect.Int16:
-		return reflect.ValueOf(int16(RandomInteger())), nil
+		return reflect.ValueOf(int16(RandomIntegerWithBoundary(f.nBoundary))), nil
 	case reflect.Int32:
-		return reflect.ValueOf(int32(RandomInteger())), nil
+		return reflect.ValueOf(int32(RandomIntegerWithBoundary(f.nBoundary))), nil
 	case reflect.Int64:
-		return reflect.ValueOf(int64(RandomInteger())), nil
+		return reflect.ValueOf(int64(RandomIntegerWithBoundary(f.nBoundary))), nil
 	case reflect.Float32:
 		return reflect.ValueOf(rand.Float32()), nil
 	case reflect.Float64:
@@ -448,35 +461,35 @@ func getValue(a interface{}) (reflect.Value, error) {
 		return reflect.ValueOf(val), nil
 
 	case reflect.Uint:
-		return reflect.ValueOf(uint(RandomInteger())), nil
+		return reflect.ValueOf(uint(RandomIntegerWithBoundary(f.nBoundary))), nil
 
 	case reflect.Uint8:
-		return reflect.ValueOf(uint8(RandomInteger())), nil
+		return reflect.ValueOf(uint8(RandomIntegerWithBoundary(f.nBoundary))), nil
 
 	case reflect.Uint16:
-		return reflect.ValueOf(uint16(RandomInteger())), nil
+		return reflect.ValueOf(uint16(RandomIntegerWithBoundary(f.nBoundary))), nil
 
 	case reflect.Uint32:
-		return reflect.ValueOf(uint32(RandomInteger())), nil
+		return reflect.ValueOf(uint32(RandomIntegerWithBoundary(f.nBoundary))), nil
 
 	case reflect.Uint64:
-		return reflect.ValueOf(uint64(RandomInteger())), nil
+		return reflect.ValueOf(uint64(RandomIntegerWithBoundary(f.nBoundary))), nil
 
 	case reflect.Map:
-		len := RandomSliceAndMapSize()
-		if shouldSetNil && len == 0 {
+		len := f.randomSliceAndMapSize()
+		if f.shouldSetNil && len == 0 {
 			return reflect.Zero(t), nil
 		}
 		v := reflect.MakeMap(t)
 		for i := 0; i < len; i++ {
 			keyInstance := reflect.New(t.Key()).Elem().Interface()
-			key, err := getValue(keyInstance)
+			key, err := f.getValue(keyInstance)
 			if err != nil {
 				return reflect.Value{}, err
 			}
 
 			valueInstance := reflect.New(t.Elem()).Elem().Interface()
-			val, err := getValue(valueInstance)
+			val, err := f.getValue(valueInstance)
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -490,8 +503,8 @@ func getValue(a interface{}) (reflect.Value, error) {
 
 }
 
-func isExcluded(fieldname string) bool {
-	for _, re := range fieldFilter {
+func (f *FakeGenerator) isExcluded(fieldname string) bool {
+	for _, re := range f.fieldFilter {
 		if re.MatchString(fieldname) {
 			return true
 		}
@@ -499,7 +512,7 @@ func isExcluded(fieldname string) bool {
 	return false
 }
 
-func isZero(field reflect.Value) (bool, error) {
+func (f *FakeGenerator) isZero(field reflect.Value) (bool, error) {
 	for _, kind := range []reflect.Kind{reflect.Struct, reflect.Slice, reflect.Array, reflect.Map} {
 		if kind == field.Kind() {
 			return false, fmt.Errorf("keep not allowed on struct")
@@ -508,7 +521,7 @@ func isZero(field reflect.Value) (bool, error) {
 	return reflect.Zero(field.Type()).Interface() == field.Interface(), nil
 }
 
-func decodeTags(typ reflect.Type, i int) structTag {
+func (f *FakeGenerator) decodeTags(typ reflect.Type, i int) structTag {
 	tags := strings.Split(typ.Field(i).Tag.Get(tagName), ",")
 
 	keepOriginal := false
@@ -522,7 +535,7 @@ func decodeTags(typ reflect.Type, i int) structTag {
 			res = append(res, tag)
 		}
 	}
-	tag, found := fieldTags[typ.Field(i).Name]
+	tag, found := f.fieldTags[typ.Field(i).Name]
 	if found {
 		res = append(res, tag)
 	}
@@ -538,7 +551,7 @@ type structTag struct {
 	keepOriginal bool
 }
 
-func setDataWithTag(v reflect.Value, tag string) error {
+func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string) error {
 
 	if v.Kind() != reflect.Ptr {
 		return errors.New(ErrValueNotPtr)
@@ -546,11 +559,11 @@ func setDataWithTag(v reflect.Value, tag string) error {
 	v = reflect.Indirect(v)
 	switch v.Kind() {
 	case reflect.Ptr:
-		if _, exist := mapperTag[tag]; !exist {
+		if _, exist := f.tagProviders[tag]; !exist {
 			return errors.New(ErrTagNotSupported)
 		}
 		if _, def := defaultTag[tag]; !def {
-			res, err := mapperTag[tag](v)
+			res, err := f.tagProviders[tag](v)
 			if err != nil {
 				return err
 			}
@@ -560,7 +573,7 @@ func setDataWithTag(v reflect.Value, tag string) error {
 
 		t := v.Type()
 		newv := reflect.New(t.Elem())
-		res, err := mapperTag[tag](newv.Elem())
+		res, err := f.tagProviders[tag](newv.Elem())
 		if err != nil {
 			return err
 		}
@@ -569,19 +582,19 @@ func setDataWithTag(v reflect.Value, tag string) error {
 		v.Set(newv)
 		return nil
 	case reflect.String:
-		return userDefinedString(v, tag)
+		return f.userDefinedString(v, tag)
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Int8, reflect.Int16, reflect.Uint, reflect.Uint8,
 		reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
-		return userDefinedNumber(v, tag)
+		return f.userDefinedNumber(v, tag)
 	case reflect.Slice, reflect.Array:
-		return userDefinedArray(v, tag)
+		return f.userDefinedArray(v, tag)
 	case reflect.Map:
-		return userDefinedMap(v, tag)
+		return f.userDefinedMap(v, tag)
 	default:
-		if _, exist := mapperTag[tag]; !exist {
+		if _, exist := f.tagProviders[tag]; !exist {
 			return errors.New(ErrTagNotSupported)
 		}
-		res, err := mapperTag[tag](v)
+		res, err := f.tagProviders[tag](v)
 		if err != nil {
 			return err
 		}
@@ -590,19 +603,19 @@ func setDataWithTag(v reflect.Value, tag string) error {
 	return nil
 }
 
-func userDefinedMap(v reflect.Value, tag string) error {
-	len := RandomSliceAndMapSize()
-	if shouldSetNil && len == 0 {
+func (f *FakeGenerator) userDefinedMap(v reflect.Value, tag string) error {
+	len := f.randomSliceAndMapSize()
+	if f.shouldSetNil && len == 0 {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
 	}
 	definedMap := reflect.MakeMap(v.Type())
 	for i := 0; i < len; i++ {
-		key, err := getValueWithTag(v.Type().Key(), tag)
+		key, err := f.getValueWithTag(v.Type().Key(), tag)
 		if err != nil {
 			return err
 		}
-		val, err := getValueWithTag(v.Type().Elem(), tag)
+		val, err := f.getValueWithTag(v.Type().Elem(), tag)
 		if err != nil {
 			return err
 		}
@@ -612,17 +625,17 @@ func userDefinedMap(v reflect.Value, tag string) error {
 	return nil
 }
 
-func getValueWithTag(t reflect.Type, tag string) (interface{}, error) {
+func (f *FakeGenerator) getValueWithTag(t reflect.Type, tag string) (interface{}, error) {
 	switch t.Kind() {
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Int8, reflect.Int16, reflect.Uint, reflect.Uint8,
 		reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		res, err := extractNumberFromTag(tag, t)
+		res, err := f.extractNumberFromTag(tag, t)
 		if err != nil {
 			return nil, err
 		}
 		return res, nil
 	case reflect.String:
-		res, err := extractStringFromTag(tag)
+		res, err := f.extractStringFromTag(tag)
 		if err != nil {
 			return nil, err
 		}
@@ -632,15 +645,15 @@ func getValueWithTag(t reflect.Type, tag string) (interface{}, error) {
 	}
 }
 
-func userDefinedArray(v reflect.Value, tag string) error {
-	len := RandomSliceAndMapSize()
-	if shouldSetNil && len == 0 {
+func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
+	len := f.randomSliceAndMapSize()
+	if f.shouldSetNil && len == 0 {
 		v.Set(reflect.Zero(v.Type()))
 		return nil
 	}
 	array := reflect.MakeSlice(v.Type(), len, len)
 	for i := 0; i < len; i++ {
-		res, err := getValueWithTag(v.Type().Elem(), tag)
+		res, err := f.getValueWithTag(v.Type().Elem(), tag)
 		if err != nil {
 			return err
 		}
@@ -650,17 +663,17 @@ func userDefinedArray(v reflect.Value, tag string) error {
 	return nil
 }
 
-func userDefinedString(v reflect.Value, tag string) error {
+func (f *FakeGenerator) userDefinedString(v reflect.Value, tag string) error {
 	var res interface{}
 	var err error
 
-	if tagFunc, ok := mapperTag[tag]; ok {
+	if tagFunc, ok := f.tagProviders[tag]; ok {
 		res, err = tagFunc(v)
 		if err != nil {
 			return err
 		}
 	} else {
-		res, err = extractStringFromTag(tag)
+		res, err = f.extractStringFromTag(tag)
 		if err != nil {
 			return err
 		}
@@ -673,17 +686,17 @@ func userDefinedString(v reflect.Value, tag string) error {
 	return nil
 }
 
-func userDefinedNumber(v reflect.Value, tag string) error {
+func (f *FakeGenerator) userDefinedNumber(v reflect.Value, tag string) error {
 	var res interface{}
 	var err error
 
-	if tagFunc, ok := mapperTag[tag]; ok {
+	if tagFunc, ok := f.tagProviders[tag]; ok {
 		res, err = tagFunc(v)
 		if err != nil {
 			return err
 		}
 	} else {
-		res, err = extractNumberFromTag(tag, v.Type())
+		res, err = f.extractNumberFromTag(tag, v.Type())
 		if err != nil {
 			return err
 		}
@@ -696,11 +709,11 @@ func userDefinedNumber(v reflect.Value, tag string) error {
 	return nil
 }
 
-func extractStringFromTag(tag string) (interface{}, error) {
+func (f *FakeGenerator) extractStringFromTag(tag string) (interface{}, error) {
 	if !strings.Contains(tag, Length) {
 		return nil, errors.New(ErrTagNotSupported)
 	}
-	len, err := extractNumberFromText(tag)
+	len, err := f.extractNumberFromText(tag)
 	if err != nil {
 		return nil, err
 	}
@@ -708,7 +721,7 @@ func extractStringFromTag(tag string) (interface{}, error) {
 	return res, nil
 }
 
-func extractNumberFromTag(tag string, t reflect.Type) (interface{}, error) {
+func (f *FakeGenerator) extractNumberFromTag(tag string, t reflect.Type) (interface{}, error) {
 	if !strings.Contains(tag, BoundaryStart) || !strings.Contains(tag, BoundaryEnd) {
 		return nil, errors.New(ErrTagNotSupported)
 	}
@@ -716,11 +729,11 @@ func extractNumberFromTag(tag string, t reflect.Type) (interface{}, error) {
 	if len(valuesStr) != 2 {
 		return nil, fmt.Errorf(ErrWrongFormattedTag, tag)
 	}
-	startBoundary, err := extractNumberFromText(valuesStr[0])
+	startBoundary, err := f.extractNumberFromText(valuesStr[0])
 	if err != nil {
 		return nil, err
 	}
-	endBoundary, err := extractNumberFromText(valuesStr[1])
+	endBoundary, err := f.extractNumberFromText(valuesStr[1])
 	if err != nil {
 		return nil, err
 	}
@@ -751,7 +764,7 @@ func extractNumberFromTag(tag string, t reflect.Type) (interface{}, error) {
 	}
 }
 
-func extractNumberFromText(text string) (int, error) {
+func (f *FakeGenerator) extractNumberFromText(text string) (int, error) {
 	text = strings.TrimSpace(text)
 	texts := strings.SplitN(text, Equals, -1)
 	if len(texts) != 2 {
@@ -784,16 +797,16 @@ func RandomIntegerWithBoundary(boundary numberBoundary) int {
 
 // RandomInteger returns a random integer between start and end boundary. [start, end)
 func RandomInteger() int {
-	return rand.Intn(nBoundary.end-nBoundary.start) + nBoundary.start
+	return rand.Int()
 }
 
 // RandomSliceAndMapSize returns a random integer between [0,RandomSliceAndMapSize). If the testRandZero is set, returns 0
 // Written for test purposes for shouldSetNil
-func RandomSliceAndMapSize() int {
-	if testRandZero {
+func (f *FakeGenerator) randomSliceAndMapSize() int {
+	if f.testRandZero {
 		return 0
 	}
-	return rand.Intn(randomSize)
+	return rand.Intn(f.randomSize)
 }
 
 func RandomElementFromSliceString(s []string) string {

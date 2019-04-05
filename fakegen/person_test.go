@@ -1,7 +1,6 @@
 package fakegen
 
 import (
-	"github.com/jfbramlett/faker/pkg/slice"
 	"reflect"
 	"testing"
 )
@@ -15,7 +14,7 @@ func TestTitleMale(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !slice.Contains(titlesMale, male.(string)) {
+	if !Contains(titlesMale, male.(string)) {
 		t.Error("Expected value from variable titleMales in function TitleMale")
 	}
 }
@@ -25,7 +24,7 @@ func TestTitleFemale(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !slice.Contains(titlesFemale, female.(string)) {
+	if !Contains(titlesFemale, female.(string)) {
 		t.Error("Expected value from variable titleFemales in function TitleFeMale")
 	}
 }
@@ -35,7 +34,7 @@ func TestFirstNameMale(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !slice.Contains(firstNamesMale, firstName.(string)) {
+	if !Contains(firstNamesMale, firstName.(string)) {
 		t.Error("Expected value from variable firstNamesMale in function FirstNameMale")
 	}
 }
@@ -45,7 +44,7 @@ func TestFirstNameFemale(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !slice.Contains(firstNamesFemale, firstName.(string)) {
+	if !Contains(firstNamesFemale, firstName.(string)) {
 		t.Error("Expected value from variable firstNamesFemale in function FirstNameFemale")
 	}
 }
@@ -55,7 +54,7 @@ func TestFirstName(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !slice.Contains(firstNames, firstname.(string)) {
+	if !Contains(firstNames, firstname.(string)) {
 		t.Error("Expected value from either firstNamesMale or firstNamesFemale in function FirstName")
 	}
 }
@@ -65,7 +64,7 @@ func TestLastName(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !slice.Contains(lastNames, lastname.(string)) {
+	if !Contains(lastNames, lastname.(string)) {
 		t.Error("Expected value from variable lastNames in function LastName")
 	}
 }
@@ -93,42 +92,42 @@ func TestNameFemale(t *testing.T) {
 
 func TestFakeTitleMale(t *testing.T) {
 	male := TitleMale()
-	if !slice.Contains(titlesMale, male) {
+	if !Contains(titlesMale, male) {
 		t.Error("Expected value from variable titleMales in function TitleMale")
 	}
 }
 
 func TestFakeTitleFemale(t *testing.T) {
 	female := TitleFemale()
-	if !slice.Contains(titlesFemale, female) {
+	if !Contains(titlesFemale, female) {
 		t.Error("Expected value from variable titleFemales in function TitleFeMale")
 	}
 }
 
 func TestFakeFirstNameMale(t *testing.T) {
 	firstName := FirstNameMale()
-	if !slice.Contains(firstNamesMale, firstName) {
+	if !Contains(firstNamesMale, firstName) {
 		t.Error("Expected value from variable firstNamesMale in function FirstNameMale")
 	}
 }
 
 func TestFakeFirstNameFemale(t *testing.T) {
 	firstName := FirstNameFemale()
-	if !slice.Contains(firstNamesFemale, firstName) {
+	if !Contains(firstNamesFemale, firstName) {
 		t.Error("Expected value from variable firstNamesFemale in function FirstNameFemale")
 	}
 }
 
 func TestFakeFirstName(t *testing.T) {
 	firstname := FirstName()
-	if !slice.Contains(firstNames, firstname) {
+	if !Contains(firstNames, firstname) {
 		t.Error("Expected value from either firstNamesMale or firstNamesFemale in function FirstName")
 	}
 }
 
 func TestFakeLastName(t *testing.T) {
 	lastname := LastName()
-	if !slice.Contains(lastNames, lastname) {
+	if !Contains(lastNames, lastname) {
 		t.Error("Expected value from variable lastNames in function LastName")
 	}
 }

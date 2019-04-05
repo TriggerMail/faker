@@ -4,10 +4,10 @@ build: test
 	@go build ./...
 
 test: 
-	@go test -v ./pkg/... -cover -race -coverprofile=coverage.txt -covermode=atomic
+	@go test -v ./... -cover -race -coverprofile=coverage.txt -covermode=atomic
 
 unittest:
-	@go test -v -short ./pkg/...
+	@go test -v -short ./...
 
 # Linter
 lint-prepare: 

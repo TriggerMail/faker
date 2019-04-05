@@ -2,7 +2,6 @@ package fakegen
 
 import (
 	"fmt"
-	"github.com/jfbramlett/faker/pkg/slice"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -39,7 +38,7 @@ type Phone struct {
 
 func (p Phone) phonenumber() string {
 	randInt, _ := RandomInt(1, 10)
-	str := strings.Join(slice.IntToString(randInt), "")
+	str := strings.Join(IntToString(randInt), "")
 	return fmt.Sprintf("%s-%s-%s", str[:3], str[3:6], str[6:10])
 }
 
@@ -59,7 +58,7 @@ func (p Phone) tollfreephonenumber() string {
 	boxDigitsStart := []string{"777", "888"}
 
 	ints, _ := RandomInt(1, 9)
-	for index, v := range slice.IntToString(ints) {
+	for index, v := range IntToString(ints) {
 		if index == 3 {
 			out += "-"
 		}
@@ -84,10 +83,10 @@ func (p Phone) e164PhoneNumber() string {
 	boxDigitsStart := []string{"7", "8"}
 	ints, _ := RandomInt(1, 10)
 
-	for _, v := range slice.IntToString(ints) {
+	for _, v := range IntToString(ints) {
 		out += v
 	}
-	return fmt.Sprintf("+%s%s", boxDigitsStart[rand.Intn(1)], strings.Join(slice.IntToString(ints), ""))
+	return fmt.Sprintf("+%s%s", boxDigitsStart[rand.Intn(1)], strings.Join(IntToString(ints), ""))
 }
 
 // E164PhoneNumber generates phone numbers of type: "+27113456789"

@@ -1,7 +1,6 @@
 package fakegen
 
 import (
-	"github.com/jfbramlett/faker/pkg/slice"
 	"reflect"
 	"strings"
 	"testing"
@@ -16,7 +15,7 @@ func TestCurrency(t *testing.T) {
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
-	if !slice.Contains(currencies, p.(string)) {
+	if !Contains(currencies, p.(string)) {
 		t.Error("Expected a currency code from currencies")
 	}
 }
@@ -34,7 +33,7 @@ func TestAmountWithCurrency(t *testing.T) {
 
 func TestFakeCurrency(t *testing.T) {
 	p := Currency()
-	if !slice.Contains(currencies, p) {
+	if !Contains(currencies, p) {
 		t.Error("Expected a currency code from currencies")
 	}
 }
@@ -48,7 +47,7 @@ func TestFakeAmountWithCurrency(t *testing.T) {
 
 	arrCurrency := strings.Split(p, " ")
 
-	if !slice.Contains(currencies, arrCurrency[0]) {
+	if !Contains(currencies, arrCurrency[0]) {
 		t.Error("Expected a currency code from currencies")
 	}
 }

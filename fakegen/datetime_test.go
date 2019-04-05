@@ -2,7 +2,6 @@ package fakegen
 
 import (
 	"fmt"
-	"github.com/jfbramlett/faker/pkg/slice"
 	"reflect"
 	"testing"
 	"time"
@@ -142,7 +141,7 @@ func TestCentury(t *testing.T) {
 	if err != nil {
 		t.Error("Expected century from functuon Century")
 	}
-	if !slice.Contains(century, centry.(string)) {
+	if !Contains(century, centry.(string)) {
 		t.Error("Expected century from functuon Century")
 	}
 }
@@ -153,7 +152,7 @@ func TestTimeZone(t *testing.T) {
 	if err != nil {
 		t.Error("Expected timezone from variable timezones")
 	}
-	if !slice.Contains(timezones, tz.(string)) {
+	if !Contains(timezones, tz.(string)) {
 		t.Error("Expected timezone from variable timezones")
 	}
 }
@@ -239,14 +238,14 @@ func TestFakeTimestamp(t *testing.T) {
 
 func TestFakeCentury(t *testing.T) {
 	centry := Century()
-	if !slice.Contains(century, centry) {
+	if !Contains(century, centry) {
 		t.Error("Expected century from functuon Century")
 	}
 }
 
 func TestFakeTimeZone(t *testing.T) {
 	tz := Timezone()
-	if !slice.Contains(timezones, tz) {
+	if !Contains(timezones, tz) {
 		t.Error("Expected timezone from variable timezones")
 	}
 }

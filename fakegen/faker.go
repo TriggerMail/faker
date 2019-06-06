@@ -648,6 +648,15 @@ func (f *FakeGenerator) getValueWithTag(t reflect.Type, tag string) (interface{}
 }
 
 func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
+	if tagFunc, ok := f.tagProviders[tag]; ok {
+		res, err := tagFunc(v)
+		if err != nil {
+			return err
+		}
+		v.Set(reflect.ValueOf(res))
+		return nil
+	}
+
 	len := f.randomSliceAndMapSize()
 	if f.shouldSetNil && len == 0 {
 		v.Set(reflect.Zero(v.Type()))

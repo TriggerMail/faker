@@ -653,7 +653,17 @@ func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
 		if err != nil {
 			return err
 		}
-		v.Set(reflect.ValueOf(res))
+
+		contentList, ok := res.([]interface{})
+		if !ok {
+			return errors.New("value set needs to be an array for tag " + tag)
+		}
+
+		array := reflect.MakeSlice(v.Type(), len(contentList), len(contentList))
+		for i := 0; i < len(contentList); i++ {
+			array.Index(i).Set(reflect.ValueOf(contentList[i]))
+		}
+		v.Set(array)
 		return nil
 	}
 

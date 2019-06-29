@@ -600,7 +600,20 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string) error {
 		if err != nil {
 			return err
 		}
-		v.Set(reflect.ValueOf(res))
+
+		valMap, ok := res.(map[interface{}]interface{})
+		if ok {
+			newFaker := f.clone(valMap)
+			val, err := newFaker.getValue(v.Interface())
+			if err != nil {
+				return err
+			}
+			val = val.Convert(v.Type())
+			v.Set(val)
+
+		} else {
+			v.Set(reflect.ValueOf(res))
+		}
 	}
 	return nil
 }

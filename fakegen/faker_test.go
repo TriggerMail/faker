@@ -1073,7 +1073,47 @@ func TestCustomMapping(t *testing.T) {
 			t.Errorf("expected W 9th but was %s", data.Addresses[1].Street)
 		}
 	})
+	t.Run("custom-mapping-struct", func(t *testing.T) {
+		fd := NewFakeGenerator()
+		err := fd.AddProvider("Page", func(v reflect.Value) (i interface{}, e error) {
+			return map[interface{}]interface{} {"PageNum": 10}, nil
+		})
+		fd.AddFieldTag("Page", "Page")
+
+		data := &ServiceRequest{}
+		err = fd.FakeData(data)
+
+		if err != nil {
+			t.Errorf("unexpected error %s", err)
+		}
+		if data.Page.PageNum != 10 {
+			t.Errorf("expected 10 but was %v", data.Page.PageNum)
+		}
+	})
+/*
+	t.Run("custom-enum", func(t *testing.T) {
+		fd := NewFakeGenerator()
+
+		fd.AddProvider("Amt", func(v reflect.Value) (i interface{}, e error) {
+			return "5", nil
+		})
+		fd.AddFieldTag("Amt", "Amt")
+		data := &ServiceRequest{}
+
+		err := fd.FakeData(data)
+
+		if err != nil {
+			t.Errorf("unexpected error %s", err)
+		}
+
+		if data.Amt != 5 {
+			t.Errorf("expected 5 but was %v", data.Amt)
+		}
+	})
+*/
 }
+
+type Amount int32
 
 type Pagination struct {
 	PageNum  int
@@ -1092,4 +1132,5 @@ type ServiceRequest struct {
 	Companies []string
 	Addresses []Addr
 	Page      Pagination
+	Amt	      Amount
 }

@@ -661,7 +661,17 @@ func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
 
 		array := reflect.MakeSlice(v.Type(), len(contentList), len(contentList))
 		for i := 0; i < len(contentList); i++ {
-			array.Index(i).Set(reflect.ValueOf(contentList[i]))
+			mapVals, ok := contentList[i].(map[interface{}]interface{})
+			if ok {
+				newFaker := f.clone(mapVals)
+				val, err := newFaker.getValue(array.Index(i).Interface())
+				if err != nil {
+					return err
+				}
+				array.Index(i).Set(val)
+			} else {
+				array.Index(i).Set(reflect.ValueOf(contentList[i]))
+			}
 		}
 		v.Set(array)
 		return nil
@@ -682,6 +692,27 @@ func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
 	}
 	v.Set(array)
 	return nil
+}
+
+func (f *FakeGenerator) clone(customMappings map[interface{}]interface{}) *FakeGenerator {
+	newFaker := NewFakeGenerator()
+	for key, val := range f.tagProviders {
+		newFaker.tagProviders[key] = val
+		newFaker.fieldTags[key] = key
+	}
+	for _, r := range f.fieldFilter {
+		newFaker.fieldFilter = append(newFaker.fieldFilter, r)
+	}
+	for ftk, ftv := range f.fieldTags {
+		newFaker.fieldTags[ftk] = ftv
+	}
+
+	for mk, mv := range customMappings {
+		newFaker.tagProviders[mk.(string)] = func(val reflect.Value) (interface{}, error) {return mv, nil}
+		newFaker.fieldTags[mk.(string)] = mk.(string)
+	}
+
+	return newFaker
 }
 
 func (f *FakeGenerator) userDefinedString(v reflect.Value, tag string) error {

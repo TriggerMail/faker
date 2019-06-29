@@ -997,21 +997,80 @@ func TestItThrowsAnErrorWhenZeroValueWithKeepAndUnsupportedTagIsUsed(t *testing.
 }
 
 func TestCustomMapping(t *testing.T) {
-	t.Run("custom-mapping", func(t *testing.T) {
+	t.Run("custom-mapping-inner-field", func(t *testing.T) {
 		fd := NewFakeGenerator()
-		fd.AddProvider("PageSize", func(v reflect.Value) (interface{}, error) {
+		err := fd.AddProvider("PageSize", func(v reflect.Value) (interface{}, error) {
 			return 5, nil
 		})
+		if err != nil {
+			t.Errorf("unexpected error %s", err)
+		}
 		fd.AddFieldTag("PageSize", "PageSize")
 
 		data := &ServiceRequest{}
-		err := fd.FakeData(data)
+		err = fd.FakeData(data)
 
 		if err != nil {
-			t.Errorf("expected error, but got nil")
+			t.Errorf("unexpected error %s", err)
 		}
 		if data.Page.PageSize != 5 {
 			t.Errorf("expected 5 but was %v", data.Page.PageSize)
+		}
+	})
+	t.Run("custom-mapping-list-string", func(t *testing.T) {
+		fd := NewFakeGenerator()
+		err := fd.AddProvider("Companies", func(v reflect.Value) (interface{}, error) {
+			return []interface{} {"company1", "company2"}, nil
+		})
+		if err != nil {
+			t.Errorf("unexpected error %s", err)
+		}
+		fd.AddFieldTag("Companies", "Companies")
+
+		data := &ServiceRequest{}
+		err = fd.FakeData(data)
+
+		if err != nil {
+			t.Errorf("unexpected error %s", err)
+		}
+		if len(data.Companies) != 2 {
+			t.Errorf("expected 2 companies but was %v", len(data.Companies))
+		}
+
+		if data.Companies[0] != "company1" {
+			t.Errorf("expected company1 but was %s", data.Companies[0])
+		}
+		if data.Companies[1] != "company2" {
+			t.Errorf("expected company2 but was %s", data.Companies[0])
+		}
+	})
+	t.Run("custom-mapping-list-data", func(t *testing.T) {
+		fd := NewFakeGenerator()
+		err := fd.AddProvider("Addresses", func(v reflect.Value) (interface{}, error) {
+			val1 := map[interface{}]interface{} {"City": "New York"}
+			val2 := map[interface{}]interface{} {"Street": "W 9th"}
+			return []interface{} {val1, val2}, nil
+		})
+		if err != nil {
+			t.Errorf("unexpected error %s", err)
+		}
+		fd.AddFieldTag("Addresses", "Addresses")
+
+		data := &ServiceRequest{}
+		err = fd.FakeData(data)
+
+		if err != nil {
+			t.Errorf("unexpected error %s", err)
+		}
+		if len(data.Addresses) != 2 {
+			t.Errorf("expected 2 companies but was %v", len(data.Companies))
+		}
+
+		if data.Addresses[0].City != "New York" {
+			t.Errorf("expected New York but was %s", data.Addresses[0].City)
+		}
+		if data.Addresses[1].Street != "W 9th" {
+			t.Errorf("expected W 9th but was %s", data.Addresses[1].Street)
 		}
 	})
 }

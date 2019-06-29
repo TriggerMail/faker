@@ -120,7 +120,7 @@ func (s SomeStruct) String() string {
 	SFloat64:%v
 	SBool: %v
 	Struct: %v
-	Time: %v 
+	Time: %v
 	Stime: %v
 	Currency: %v
 	Amount: %v
@@ -129,7 +129,7 @@ func (s SomeStruct) String() string {
 	HyphenatedID: %v
 
 	MapStringString: %v
-	MapStringStruct: %v 
+	MapStringStruct: %v
 	MapStringStructPointer: %v
 	}`, s.Inta, s.Int8, s.Int16, s.Int32,
 		s.Int64, s.Float32, s.Float64, s.UInta,
@@ -832,7 +832,7 @@ func TestTagWithPointer(t *testing.T) {
 
 func TestItOverwritesDefaultValueIfKeepIsSet(t *testing.T) {
 	type TestStruct struct {
-		Email     string `json:"email,omitempty" faker:"email,keep"`
+		Email string `json:"email,omitempty" faker:"email,keep"`
 	}
 
 	test := TestStruct{}
@@ -873,10 +873,10 @@ func TestItKeepsStructPropertyWhenTagKeepIsSet(t *testing.T) {
 
 func TestFieldExclusions(t *testing.T) {
 	type TestStruct struct {
-		FirstName 	string `json:"first_name,omitempty" faker:"first_name_male,keep"`
-		Email     	string `json:"email,omitempty" faker:"email,keep"`
-		XXX_Field1	string `json:"-"`
-		XXX_Field2	string `json:"-"`
+		FirstName  string `json:"first_name,omitempty" faker:"first_name_male,keep"`
+		Email      string `json:"email,omitempty" faker:"email,keep"`
+		XXX_Field1 string `json:"-"`
+		XXX_Field2 string `json:"-"`
 	}
 
 	firstName := "Heino van der Laien"
@@ -910,10 +910,10 @@ func TestFieldExclusions(t *testing.T) {
 
 func TestFieldExternalTag(t *testing.T) {
 	type TestStruct struct {
-		FirstName 	string `json:"first_name,omitempty" faker:"first_name_male"`
-		Email     	string `json:"email,omitempty"`
-		XXX_Field1	string `json:"-"`
-		XXX_Field2	string `json:"-"`
+		FirstName  string `json:"first_name,omitempty" faker:"first_name_male"`
+		Email      string `json:"email,omitempty"`
+		XXX_Field1 string `json:"-"`
+		XXX_Field2 string `json:"-"`
 	}
 
 	test := TestStruct{}
@@ -962,7 +962,7 @@ func TestItThrowsAnErrorWhenKeepIsUsedOnIncomparableType(t *testing.T) {
 	withSlice := TypeStructWithSlice{}
 	withArray := TypeStructWithArray{}
 
-	for _, item := range []interface{}{withArray,withStruct,withMap,withSlice} {
+	for _, item := range []interface{}{withArray, withStruct, withMap, withSlice} {
 		err := NewFakeGenerator().FakeData(&item)
 		if err == nil {
 			t.Errorf("expected error, but got nil")
@@ -994,4 +994,43 @@ func TestItThrowsAnErrorWhenZeroValueWithKeepAndUnsupportedTagIsUsed(t *testing.
 	if err == nil {
 		t.Errorf("expected error, but got nil")
 	}
+}
+
+func TestCustomMapping(t *testing.T) {
+	t.Run("custom-mapping", func(t *testing.T) {
+		fd := NewFakeGenerator()
+		fd.AddProvider("PageSize", func(v reflect.Value) (interface{}, error) {
+			return 5, nil
+		})
+		fd.AddFieldTag("PageSize", "PageSize")
+
+		data := &ServiceRequest{}
+		err := fd.FakeData(data)
+
+		if err != nil {
+			t.Errorf("expected error, but got nil")
+		}
+		if data.Page.PageSize != 5 {
+			t.Errorf("expected 5 but was %v", data.Page.PageSize)
+		}
+	})
+}
+
+type Pagination struct {
+	PageNum  int
+	PageSize int
+}
+
+type Addr struct {
+	Street string
+	City   string
+}
+
+type ServiceRequest struct {
+	Name      string
+	Email     string
+	URL       string
+	Companies []string
+	Addresses []Addr
+	Page      Pagination
 }

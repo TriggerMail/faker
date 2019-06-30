@@ -541,7 +541,7 @@ func validateRange(value int) error {
 func TestSetDataWithTagIfFirstArgumentNotPtr(t *testing.T) {
 	temp := struct{}{}
 	generator := NewFakeGenerator()
-	if generator.setDataWithTag(reflect.ValueOf(temp), "").Error() != "Not a pointer value" {
+	if generator.setDataWithTag(reflect.ValueOf(temp), "", nil).Error() != "Not a pointer value" {
 		t.Error("Expected in arguments not ptr")
 	}
 }
@@ -1090,12 +1090,12 @@ func TestCustomMapping(t *testing.T) {
 			t.Errorf("expected 10 but was %v", data.Page.PageNum)
 		}
 	})
-/*
+
 	t.Run("custom-enum", func(t *testing.T) {
 		fd := NewFakeGenerator()
 
 		fd.AddProvider("Amt", func(v reflect.Value) (i interface{}, e error) {
-			return "5", nil
+			return 5, nil
 		})
 		fd.AddFieldTag("Amt", "Amt")
 		data := &ServiceRequest{}
@@ -1110,7 +1110,6 @@ func TestCustomMapping(t *testing.T) {
 			t.Errorf("expected 5 but was %v", data.Amt)
 		}
 	})
-*/
 }
 
 type Amount int32

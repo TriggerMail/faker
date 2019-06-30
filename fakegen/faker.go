@@ -388,6 +388,8 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 			typeOfV := v.Type()
 
 			for i := 0; i < v.NumField(); i++ {
+				fieldName := typeOfV.Field(i).Name
+				fmt.Print(fieldName)
 				if !v.Field(i).CanSet() || f.isExcluded(typeOfV.Field(i).Name) {
 					continue // to avoid panic to set on unexported field in struct
 				}
@@ -400,7 +402,7 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 						return reflect.Value{}, err
 					}
 					if zero {
-						err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType)
+						err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType, nil)
 						if err != nil {
 							return reflect.Value{}, err
 						}
@@ -417,7 +419,7 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 				case tags.fieldType == SKIP:
 					continue
 				default:
-					err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType)
+					err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType, v.Field(i).Type())
 					if err != nil {
 						return reflect.Value{}, err
 					}
@@ -553,7 +555,7 @@ type structTag struct {
 	keepOriginal bool
 }
 
-func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string) error {
+func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string, typ reflect.Type) error {
 
 	if v.Kind() != reflect.Ptr {
 		return errors.New(ErrValueNotPtr)
@@ -587,7 +589,7 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string) error {
 		return f.userDefinedString(v, tag)
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Int8, reflect.Int16, reflect.Uint, reflect.Uint8,
 		reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
-		return f.userDefinedNumber(v, tag)
+		return f.userDefinedNumber(v, tag, typ)
 	case reflect.Slice, reflect.Array:
 		return f.userDefinedArray(v, tag)
 	case reflect.Map:
@@ -612,7 +614,9 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string) error {
 			v.Set(val)
 
 		} else {
-			v.Set(reflect.ValueOf(res))
+			typName := typ.Name()
+			fmt.Println(typName)
+			v.Set(reflect.ValueOf(res).Convert(typ))
 		}
 	}
 	return nil
@@ -751,7 +755,7 @@ func (f *FakeGenerator) userDefinedString(v reflect.Value, tag string) error {
 	return nil
 }
 
-func (f *FakeGenerator) userDefinedNumber(v reflect.Value, tag string) error {
+func (f *FakeGenerator) userDefinedNumber(v reflect.Value, tag string, typ reflect.Type) error {
 	var res interface{}
 	var err error
 
@@ -771,7 +775,7 @@ func (f *FakeGenerator) userDefinedNumber(v reflect.Value, tag string) error {
 		return errors.New(ErrTagNotSupported)
 	}
 
-	v.Set(reflect.ValueOf(res))
+	v.Set(reflect.ValueOf(res).Convert(typ))
 	return nil
 }
 

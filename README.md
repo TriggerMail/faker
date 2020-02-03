@@ -2,6 +2,15 @@
 
 ## [faker](#)
 
+** This is a fork of https://github.com/bxcodec/faker which was customized to work for Slug **
+The differences between this version and bxcodec are:
+* bxcodec relies on a function to generate fake data with settings configured globally
+* this version you construct an instance of the fake data generator and can specify configuration on that instance (this was needed to scope the fake data configuration to a test as it can very between tests)
+* bxcodec relies on tags defined on the struct to determine fake-data type
+* this version let's you define this configuration by field name
+
+You can find more details on how this is used in the slug repo.
+
 Struct Data Fake Generator
 
 Faker  will generate you a fake data based on your Struct.

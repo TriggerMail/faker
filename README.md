@@ -1,25 +1,35 @@
 # Docs
 
 ## [faker](#)
+Faker  will generate you a fake data based on your Struct.
+
 
 ** This is a fork of https://github.com/bxcodec/faker which was customized to work for Slug **
+
 The differences between this version and bxcodec are:
 * bxcodec relies on a function to generate fake data with settings configured globally
 * this version you construct an instance of the fake data generator and can specify configuration on that instance (this was needed to scope the fake data configuration to a test as it can very between tests)
 * bxcodec relies on tags defined on the struct to determine fake-data type
 * this version let's you define this configuration by field name
 
-You can find more details on how this is used in the slug repo.
+In general you can use the same details as noted in the docs [Godoc](https://godoc.org/github.com/bxcodec/faker). The main difference
+is instead of using 
 
-Struct Data Fake Generator
+```
+faker.FakeData(<your instance>)
+```
+you
+```
+   fakeGen := faker.NewFakeGenerator()
+    ... additional config
+   fakeGen.FakeData(<your instance>)
+```
 
-Faker  will generate you a fake data based on your Struct.
+this additional configuration is:
 
-[![Build Status](https://travis-ci.org/bxcodec/faker.svg?branch=master)](https://travis-ci.org/bxcodec/faker)
-[![codecov](https://codecov.io/gh/bxcodec/faker/branch/master/graph/badge.svg)](https://codecov.io/gh/bxcodec/faker)
-[![Go Report Card](https://goreportcard.com/badge/github.com/bxcodec/faker)](https://goreportcard.com/report/github.com/bxcodec/faker)
-[![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/bxcodec/faker/blob/master/LICENSE)
-[![GoDoc](https://godoc.org/github.com/bxcodec/faker?status.svg)](https://godoc.org/github.com/bxcodec/faker)
+* you can specify a regex to ignore certain fields. This is done via the method AddFieldFilter giving it a regex to match field names to exclude from filling
+* you can specify a tag on a field by name. This is done by via the method AddFieldTag giving it the field name and the tag
+* you can specify additional value providers. This is really used to assign a specific value to a field by name where you specific the field name and give a provider used to get the value for that field.
 
 ## Index
 

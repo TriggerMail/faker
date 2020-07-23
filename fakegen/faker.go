@@ -3,9 +3,9 @@ package fakegen
 // Faker is a simple fake data generator for your own struct.
 // Save your time, and Fake your data for your testing now.
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/spf13/cast"
 	"math/rand"
 	"reflect"
 	"regexp"
@@ -13,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/spf13/cast"
 )
 
 var mu = &sync.Mutex{}
@@ -125,7 +127,7 @@ var defaultTag = map[string]string{
 
 // TaggedFunction used as the standard layout function for tag providers in struct.
 // This type also can be used for custom provider.
-type TaggedFunction func(v reflect.Value) (interface{}, error)
+type TaggedFunction func(ctx context.Context, v reflect.Value) (interface{}, error)
 
 var mapperTag = map[string]TaggedFunction{
 	EmailTag:              GetNetworker().Email,
@@ -195,16 +197,15 @@ var (
 	ErrNotSupportedTypeForTag  = "Type is not supported by tag."
 )
 
-
 func NewFakeGenerator() *FakeGenerator {
 	fg := FakeGenerator{fieldTags: make(map[string]string),
-		tagProviders: make(map[string]TaggedFunction),
-		fieldFilter: make([]*regexp.Regexp, 0),
-		shouldSetNil: false,
+		tagProviders:    make(map[string]TaggedFunction),
+		fieldFilter:     make([]*regexp.Regexp, 0),
+		shouldSetNil:    false,
 		randomStringLen: 25,
-		randomSize: 100,
-		nBoundary: numberBoundary{start: 0, end: 100},
-		testRandZero: false}
+		randomSize:      100,
+		nBoundary:       numberBoundary{start: 0, end: 100},
+		testRandZero:    false}
 
 	for k, v := range mapperTag {
 		fg.tagProviders[k] = v
@@ -214,14 +215,14 @@ func NewFakeGenerator() *FakeGenerator {
 }
 
 type FakeGenerator struct {
-	fieldTags 			map[string]string
-	tagProviders		map[string]TaggedFunction
-	fieldFilter 		[]*regexp.Regexp
-	shouldSetNil		bool
-	randomStringLen		int
-	randomSize			int
-	nBoundary			numberBoundary
-	testRandZero		bool
+	fieldTags       map[string]string
+	tagProviders    map[string]TaggedFunction
+	fieldFilter     []*regexp.Regexp
+	shouldSetNil    bool
+	randomStringLen int
+	randomSize      int
+	nBoundary       numberBoundary
+	testRandZero    bool
 }
 
 func (f *FakeGenerator) init() {
@@ -273,10 +274,9 @@ func (f *FakeGenerator) AddFieldTag(field, tag string) {
 	f.fieldTags[field] = tag
 }
 
-
 // FakeData is the main function. Will generate a fake data based on your struct.  You can use this for automation testing, or anything that need automated data.
 // You don't need to Create your own data for your testing.
-func (f *FakeGenerator) FakeData(a interface{}) error {
+func (f *FakeGenerator) FakeData(ctx context.Context, a interface{}) error {
 
 	reflectType := reflect.TypeOf(a)
 
@@ -290,7 +290,7 @@ func (f *FakeGenerator) FakeData(a interface{}) error {
 
 	rval := reflect.ValueOf(a)
 
-	finalValue, err := f.getValue(a)
+	finalValue, err := f.getValue(ctx, a)
 	if err != nil {
 		return err
 	}
@@ -352,7 +352,7 @@ func (f *FakeGenerator) AddProvider(tag string, provider TaggedFunction) error {
 	return nil
 }
 
-func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
+func (f *FakeGenerator) getValue(ctx context.Context, a interface{}) (reflect.Value, error) {
 	t := reflect.TypeOf(a)
 	if t == nil {
 		return reflect.Value{}, fmt.Errorf("interface{} not allowed")
@@ -365,12 +365,12 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 		var val reflect.Value
 		var err error
 		if a != reflect.Zero(reflect.TypeOf(a)).Interface() {
-			val, err = f.getValue(reflect.ValueOf(a).Elem().Interface())
+			val, err = f.getValue(ctx, reflect.ValueOf(a).Elem().Interface())
 			if err != nil {
 				return reflect.Value{}, err
 			}
 		} else {
-			val, err = f.getValue(v.Elem().Interface())
+			val, err = f.getValue(ctx, v.Elem().Interface())
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -388,8 +388,6 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 			typeOfV := v.Type()
 
 			for i := 0; i < v.NumField(); i++ {
-				fieldName := typeOfV.Field(i).Name
-				fmt.Print(fieldName)
 				if !v.Field(i).CanSet() || f.isExcluded(typeOfV.Field(i).Name) {
 					continue // to avoid panic to set on unexported field in struct
 				}
@@ -402,7 +400,7 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 						return reflect.Value{}, err
 					}
 					if zero {
-						err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType, nil)
+						err := f.setDataWithTag(ctx, v.Field(i).Addr(), tags.fieldType, nil)
 						if err != nil {
 							return reflect.Value{}, err
 						}
@@ -410,7 +408,7 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 					}
 					v.Field(i).Set(reflect.ValueOf(a).Field(i))
 				case tags.fieldType == "":
-					val, err := f.getValue(v.Field(i).Interface())
+					val, err := f.getValue(ctx, v.Field(i).Interface())
 					if err != nil {
 						return reflect.Value{}, err
 					}
@@ -419,7 +417,7 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 				case tags.fieldType == SKIP:
 					continue
 				default:
-					err := f.setDataWithTag(v.Field(i).Addr(), tags.fieldType, v.Field(i).Type())
+					err := f.setDataWithTag(ctx, v.Field(i).Addr(), tags.fieldType, v.Field(i).Type())
 					if err != nil {
 						return reflect.Value{}, err
 					}
@@ -439,7 +437,7 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 		}
 		v := reflect.MakeSlice(t, len, len)
 		for i := 0; i < v.Len(); i++ {
-			val, err := f.getValue(v.Index(i).Interface())
+			val, err := f.getValue(ctx, v.Index(i).Interface())
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -487,13 +485,13 @@ func (f *FakeGenerator) getValue(a interface{}) (reflect.Value, error) {
 		v := reflect.MakeMap(t)
 		for i := 0; i < len; i++ {
 			keyInstance := reflect.New(t.Key()).Elem().Interface()
-			key, err := f.getValue(keyInstance)
+			key, err := f.getValue(ctx, keyInstance)
 			if err != nil {
 				return reflect.Value{}, err
 			}
 
 			valueInstance := reflect.New(t.Elem()).Elem().Interface()
-			val, err := f.getValue(valueInstance)
+			val, err := f.getValue(ctx, valueInstance)
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -555,7 +553,7 @@ type structTag struct {
 	keepOriginal bool
 }
 
-func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string, typ reflect.Type) error {
+func (f *FakeGenerator) setDataWithTag(ctx context.Context, v reflect.Value, tag string, typ reflect.Type) error {
 
 	if v.Kind() != reflect.Ptr {
 		return errors.New(ErrValueNotPtr)
@@ -567,7 +565,7 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string, typ reflect.
 			return errors.New(ErrTagNotSupported)
 		}
 		if _, def := defaultTag[tag]; !def {
-			res, err := f.tagProviders[tag](v)
+			res, err := f.tagProviders[tag](ctx, v)
 			if err != nil {
 				return err
 			}
@@ -577,7 +575,7 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string, typ reflect.
 
 		t := v.Type()
 		newv := reflect.New(t.Elem())
-		res, err := f.tagProviders[tag](newv.Elem())
+		res, err := f.tagProviders[tag](ctx, newv.Elem())
 		if err != nil {
 			return err
 		}
@@ -586,19 +584,19 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string, typ reflect.
 		v.Set(newv)
 		return nil
 	case reflect.String:
-		return f.userDefinedString(v, tag)
+		return f.userDefinedString(ctx, v, tag)
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Int8, reflect.Int16, reflect.Uint, reflect.Uint8,
 		reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
-		return f.userDefinedNumber(v, tag, typ)
+		return f.userDefinedNumber(ctx, v, tag, typ)
 	case reflect.Slice, reflect.Array:
-		return f.userDefinedArray(v, tag)
+		return f.userDefinedArray(ctx, v, tag)
 	case reflect.Map:
-		return f.userDefinedMap(v, tag)
+		return f.userDefinedMap(ctx, v, tag)
 	default:
 		if _, exist := f.tagProviders[tag]; !exist {
 			return errors.New(ErrTagNotSupported)
 		}
-		res, err := f.tagProviders[tag](v)
+		res, err := f.tagProviders[tag](ctx, v)
 		if err != nil {
 			return err
 		}
@@ -606,7 +604,7 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string, typ reflect.
 		valMap, ok := res.(map[interface{}]interface{})
 		if ok {
 			newFaker := f.clone(valMap)
-			val, err := newFaker.getValue(v.Interface())
+			val, err := newFaker.getValue(ctx, v.Interface())
 			if err != nil {
 				return err
 			}
@@ -614,15 +612,13 @@ func (f *FakeGenerator) setDataWithTag(v reflect.Value, tag string, typ reflect.
 			v.Set(val)
 
 		} else {
-			typName := typ.Name()
-			fmt.Println(typName)
 			v.Set(reflect.ValueOf(res).Convert(typ))
 		}
 	}
 	return nil
 }
 
-func (f *FakeGenerator) userDefinedMap(v reflect.Value, tag string) error {
+func (f *FakeGenerator) userDefinedMap(ctx context.Context, v reflect.Value, tag string) error {
 	len := f.randomSliceAndMapSize()
 	if f.shouldSetNil && len == 0 {
 		v.Set(reflect.Zero(v.Type()))
@@ -630,11 +626,11 @@ func (f *FakeGenerator) userDefinedMap(v reflect.Value, tag string) error {
 	}
 	definedMap := reflect.MakeMap(v.Type())
 	for i := 0; i < len; i++ {
-		key, err := f.getValueWithTag(v.Type().Key(), tag)
+		key, err := f.getValueWithTag(ctx, v.Type().Key(), tag)
 		if err != nil {
 			return err
 		}
-		val, err := f.getValueWithTag(v.Type().Elem(), tag)
+		val, err := f.getValueWithTag(ctx, v.Type().Elem(), tag)
 		if err != nil {
 			return err
 		}
@@ -644,7 +640,7 @@ func (f *FakeGenerator) userDefinedMap(v reflect.Value, tag string) error {
 	return nil
 }
 
-func (f *FakeGenerator) getValueWithTag(t reflect.Type, tag string) (interface{}, error) {
+func (f *FakeGenerator) getValueWithTag(ctx context.Context, t reflect.Type, tag string) (interface{}, error) {
 	switch t.Kind() {
 	case reflect.Int, reflect.Int32, reflect.Int64, reflect.Int8, reflect.Int16, reflect.Uint, reflect.Uint8,
 		reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -664,9 +660,9 @@ func (f *FakeGenerator) getValueWithTag(t reflect.Type, tag string) (interface{}
 	}
 }
 
-func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
+func (f *FakeGenerator) userDefinedArray(ctx context.Context, v reflect.Value, tag string) error {
 	if tagFunc, ok := f.tagProviders[tag]; ok {
-		res, err := tagFunc(v)
+		res, err := tagFunc(ctx, v)
 		if err != nil {
 			return err
 		}
@@ -681,7 +677,7 @@ func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
 			mapVals, ok := contentList[i].(map[interface{}]interface{})
 			if ok {
 				newFaker := f.clone(mapVals)
-				val, err := newFaker.getValue(array.Index(i).Interface())
+				val, err := newFaker.getValue(ctx, array.Index(i).Interface())
 				if err != nil {
 					return err
 				}
@@ -701,7 +697,7 @@ func (f *FakeGenerator) userDefinedArray(v reflect.Value, tag string) error {
 	}
 	array := reflect.MakeSlice(v.Type(), len, len)
 	for i := 0; i < len; i++ {
-		res, err := f.getValueWithTag(v.Type().Elem(), tag)
+		res, err := f.getValueWithTag(ctx, v.Type().Elem(), tag)
 		if err != nil {
 			return err
 		}
@@ -725,19 +721,19 @@ func (f *FakeGenerator) clone(customMappings map[interface{}]interface{}) *FakeG
 	}
 
 	for mk, mv := range customMappings {
-		newFaker.tagProviders[mk.(string)] = func(val reflect.Value) (interface{}, error) {return mv, nil}
+		newFaker.tagProviders[mk.(string)] = func(ctx context.Context, val reflect.Value) (interface{}, error) { return mv, nil }
 		newFaker.fieldTags[mk.(string)] = mk.(string)
 	}
 
 	return newFaker
 }
 
-func (f *FakeGenerator) userDefinedString(v reflect.Value, tag string) error {
+func (f *FakeGenerator) userDefinedString(ctx context.Context, v reflect.Value, tag string) error {
 	var res interface{}
 	var err error
 
 	if tagFunc, ok := f.tagProviders[tag]; ok {
-		res, err = tagFunc(v)
+		res, err = tagFunc(ctx, v)
 		if err != nil {
 			return err
 		}
@@ -755,12 +751,12 @@ func (f *FakeGenerator) userDefinedString(v reflect.Value, tag string) error {
 	return nil
 }
 
-func (f *FakeGenerator) userDefinedNumber(v reflect.Value, tag string, typ reflect.Type) error {
+func (f *FakeGenerator) userDefinedNumber(ctx context.Context, v reflect.Value, tag string, typ reflect.Type) error {
 	var res interface{}
 	var err error
 
 	if tagFunc, ok := f.tagProviders[tag]; ok {
-		res, err = tagFunc(v)
+		res, err = tagFunc(ctx, v)
 		if err != nil {
 			return err
 		}

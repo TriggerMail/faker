@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"io"
@@ -22,8 +23,8 @@ func GetIdentifier() Identifier {
 
 // Identifier ...
 type Identifier interface {
-	Digit(v reflect.Value) (interface{}, error)
-	Hyphenated(v reflect.Value) (interface{}, error)
+	Digit(ctx context.Context, v reflect.Value) (interface{}, error)
+	Hyphenated(ctx context.Context, v reflect.Value) (interface{}, error)
 }
 
 // UUID struct
@@ -53,7 +54,7 @@ func (u UUID) hyphenated() (string, error) {
 }
 
 // Hyphenated returns a 36 byte hyphenated UUID
-func (u UUID) Hyphenated(v reflect.Value) (interface{}, error) {
+func (u UUID) Hyphenated(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return u.hyphenated()
 }
 
@@ -74,7 +75,7 @@ func (u UUID) digit() (string, error) {
 }
 
 // Digit returns a 32 bytes UUID
-func (u UUID) Digit(v reflect.Value) (interface{}, error) {
+func (u UUID) Digit(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return u.digit()
 }
 

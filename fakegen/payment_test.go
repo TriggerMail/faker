@@ -1,13 +1,14 @@
 package fakegen
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"testing"
 )
 
 func TestCreditCardType(t *testing.T) {
-	ccType, err := GetPayment().CreditCardType(reflect.Value{})
+	ccType, err := GetPayment().CreditCardType(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
@@ -19,7 +20,7 @@ func TestCreditCardType(t *testing.T) {
 }
 
 func TestCreditCardNumber(t *testing.T) {
-	_, err := GetPayment().CreditCardNumber(reflect.Value{})
+	_, err := GetPayment().CreditCardNumber(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}

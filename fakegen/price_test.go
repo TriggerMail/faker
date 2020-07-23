@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"testing"
@@ -11,7 +12,7 @@ func TestSetPrice(t *testing.T) {
 }
 
 func TestCurrency(t *testing.T) {
-	p, err := GetPrice().Currency(reflect.Value{})
+	p, err := GetPrice().Currency(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
@@ -21,7 +22,7 @@ func TestCurrency(t *testing.T) {
 }
 
 func TestAmountWithCurrency(t *testing.T) {
-	p, err := GetPrice().AmountWithCurrency(reflect.Value{})
+	p, err := GetPrice().AmountWithCurrency(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}

@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -271,7 +272,7 @@ type NotTaggedStruct struct {
 
 func TestFakerData(t *testing.T) {
 	var a SomeStruct
-	err := NewFakeGenerator().FakeData(&a)
+	err := NewFakeGenerator().FakeData(context.Background(), &a)
 
 	if err != nil {
 		t.Error("Expected NoError")
@@ -280,7 +281,7 @@ func TestFakerData(t *testing.T) {
 	fmt.Printf("%+v\n", a)
 
 	var b TaggedStruct
-	err = NewFakeGenerator().FakeData(&b)
+	err = NewFakeGenerator().FakeData(context.Background(), &b)
 
 	if err != nil {
 		t.Error("Expected NoError, but Got Err: ", err)
@@ -299,14 +300,14 @@ func TestUnsuportedMapStringInterface(t *testing.T) {
 		Map map[string]interface{}
 	}
 	var sample = new(Sample)
-	if err := NewFakeGenerator().FakeData(sample); err == nil {
+	if err := NewFakeGenerator().FakeData(context.Background(), sample); err == nil {
 		t.Error("Expected Error. But got nil")
 	}
 }
 
 func TestSetDataIfArgumentNotPtr(t *testing.T) {
 	temp := struct{}{}
-	if "Not a pointer value" != NewFakeGenerator().FakeData(temp).Error() {
+	if "Not a pointer value" != NewFakeGenerator().FakeData(context.Background(), temp).Error() {
 		t.Error("Expected in arguments not ptr")
 	}
 }
@@ -314,7 +315,7 @@ func TestSetDataIfArgumentNotPtr(t *testing.T) {
 func TestSetDataIfArgumentNotHaveReflect(t *testing.T) {
 	temp := func() {}
 
-	if err := NewFakeGenerator().FakeData(temp); err == nil {
+	if err := NewFakeGenerator().FakeData(context.Background(), temp); err == nil {
 		t.Error("Exptected error but got nil")
 	}
 }
@@ -324,7 +325,7 @@ func TestSetDataErrorDataParseTagStringType(t *testing.T) {
 		Test string `faker:"test"`
 	}{}
 	fmt.Printf("%+v ", temp)
-	if err := NewFakeGenerator().FakeData(temp); err == nil {
+	if err := NewFakeGenerator().FakeData(context.Background(), temp); err == nil {
 		t.Error("Exptected error Unsupported tag, but got nil")
 	}
 }
@@ -334,7 +335,7 @@ func TestSetDataErrorDataParseTagIntType(t *testing.T) {
 		Test int `faker:"test"`
 	}{}
 
-	if err := NewFakeGenerator().FakeData(temp); err == nil {
+	if err := NewFakeGenerator().FakeData(context.Background(), temp); err == nil {
 		t.Error("Expected error Unsupported tag, but got nil")
 	}
 }
@@ -349,7 +350,7 @@ func TestSetRandomStringLength(t *testing.T) {
 	if err := generator.SetRandomStringLength(strLen); err != nil {
 		t.Error("SetRandomStringLength method is corrupted.")
 	}
-	if err := generator.FakeData(&someStruct); err != nil {
+	if err := generator.FakeData(context.Background(), &someStruct); err != nil {
 		t.Error("Fake data generation has failed")
 	}
 	if len(someStruct.StringValue) > strLen {
@@ -367,7 +368,7 @@ func TestSetRandomNumberBoundaries(t *testing.T) {
 	if err := generator.SetRandomNumberBoundaries(boundary.start, boundary.end); err != nil {
 		t.Error("SetRandomNumberBoundaries method is corrupted.")
 	}
-	if err := generator.FakeData(&someStruct); err != nil {
+	if err := generator.FakeData(context.Background(), &someStruct); err != nil {
 		t.Error("Fake data generation has failed")
 	}
 	if someStruct.Inta >= boundary.end || someStruct.Inta < boundary.start {
@@ -385,7 +386,7 @@ func TestSetRandomMapAndSliceSize(t *testing.T) {
 	if err := generator.SetRandomMapAndSliceSize(size); err != nil {
 		t.Error("SetRandomMapAndSliceSize method is corrupted.")
 	}
-	if err := generator.FakeData(&someStruct); err != nil {
+	if err := generator.FakeData(context.Background(), &someStruct); err != nil {
 		t.Error("Fake data generation has failed")
 	}
 	if len(someStruct.MapStringStruct) > size || len(someStruct.SBool) > size {
@@ -398,7 +399,7 @@ func TestSetNilIfLenIsZero(t *testing.T) {
 	generator := NewFakeGenerator()
 	generator.SetNilIfLenIsZero(true)
 	generator.SetTestRandZero(true)
-	if err := generator.FakeData(&someStruct); err != nil {
+	if err := generator.FakeData(context.Background(), &someStruct); err != nil {
 		t.Error("Fake data generation has failed")
 	}
 	if someStruct.MapStringString != nil && someStruct.MapStringStruct != nil &&
@@ -414,7 +415,7 @@ func TestBoundaryAndLen(t *testing.T) {
 	iterate := 10
 	someStruct := SomeStructWithLen{}
 	for i := 0; i < iterate; i++ {
-		if err := NewFakeGenerator().FakeData(&someStruct); err != nil {
+		if err := NewFakeGenerator().FakeData(context.Background(), &someStruct); err != nil {
 			t.Error(err)
 		}
 		if err := validateRange(int(someStruct.Int8)); err != nil {
@@ -479,37 +480,37 @@ func TestExtractNumberFromTagFail(t *testing.T) {
 		Test float32 `faker:"boundary_start=5, boundary_end=10"`
 	}{}
 	generator := NewFakeGenerator()
-	if err := generator.FakeData(&notSupportedTypeStruct); err == nil {
+	if err := generator.FakeData(context.Background(), &notSupportedTypeStruct); err == nil {
 		t.Error(err)
 	}
 	notSupportedStruct := &struct {
 		Test int `faker:"boundary_start=5"`
 	}{}
-	if err := generator.FakeData(&notSupportedStruct); err == nil {
+	if err := generator.FakeData(context.Background(), &notSupportedStruct); err == nil {
 		t.Error(err)
 	}
 	wrongFormatStruct := &struct {
 		Test int `faker:"boundary_start=5 boundary_end=10"`
 	}{}
-	if err := generator.FakeData(&wrongFormatStruct); err == nil {
+	if err := generator.FakeData(context.Background(), &wrongFormatStruct); err == nil {
 		t.Error(err)
 	}
 	startExtractionStruct := &struct {
 		Test int `faker:"boundary_start=asda, boundary_end=10"`
 	}{}
-	if err := generator.FakeData(&startExtractionStruct); err == nil {
+	if err := generator.FakeData(context.Background(), &startExtractionStruct); err == nil {
 		t.Error(err)
 	}
 	endExtractionStruct := &struct {
 		Test int `faker:"boundary_start=5, boundary_end=asda"`
 	}{}
-	if err := generator.FakeData(&endExtractionStruct); err == nil {
+	if err := generator.FakeData(context.Background(), &endExtractionStruct); err == nil {
 		t.Error(err)
 	}
 	wrongSplitFormatStruct := &struct {
 		Test int `faker:"boundary_start5, boundary_end=10"`
 	}{}
-	if err := generator.FakeData(&wrongSplitFormatStruct); err == nil {
+	if err := generator.FakeData(context.Background(), &wrongSplitFormatStruct); err == nil {
 		t.Error(err)
 	}
 }
@@ -518,7 +519,7 @@ func TestUserDefinedStringFail(t *testing.T) {
 	wrongFormatStruct := &struct {
 		Test string `faker:"len=asd"`
 	}{}
-	if err := NewFakeGenerator().FakeData(&wrongFormatStruct); err == nil {
+	if err := NewFakeGenerator().FakeData(context.Background(), &wrongFormatStruct); err == nil {
 		t.Error(err)
 	}
 }
@@ -541,7 +542,7 @@ func validateRange(value int) error {
 func TestSetDataWithTagIfFirstArgumentNotPtr(t *testing.T) {
 	temp := struct{}{}
 	generator := NewFakeGenerator()
-	if generator.setDataWithTag(reflect.ValueOf(temp), "", nil).Error() != "Not a pointer value" {
+	if generator.setDataWithTag(context.Background(), reflect.ValueOf(temp), "", nil).Error() != "Not a pointer value" {
 		t.Error("Expected in arguments not ptr")
 	}
 }
@@ -549,7 +550,7 @@ func TestSetDataWithTagIfFirstArgumentNotPtr(t *testing.T) {
 func BenchmarkFakerDataNOTTagged(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		a := NotTaggedStruct{}
-		err := NewFakeGenerator().FakeData(&a)
+		err := NewFakeGenerator().FakeData(context.Background(), &a)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -559,7 +560,7 @@ func BenchmarkFakerDataNOTTagged(b *testing.B) {
 func BenchmarkFakerDataTagged(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		a := TaggedStruct{}
-		err := NewFakeGenerator().FakeData(&a)
+		err := NewFakeGenerator().FakeData(context.Background(), &a)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -605,14 +606,14 @@ type PointerC struct {
 func TestStructPointer(t *testing.T) {
 	a := new(PointerStructB)
 	generator := NewFakeGenerator()
-	err := generator.FakeData(a)
+	err := generator.FakeData(context.Background(), a)
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
 	}
 	fmt.Printf(" A value: %+v , Somestruct Value: %+v  ", a, a)
 
 	tagged := new(PointerC)
-	err = generator.FakeData(tagged)
+	err = generator.FakeData(context.Background(), tagged)
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
 	}
@@ -632,7 +633,7 @@ type CustomTypeStruct struct {
 
 func TestCustomType(t *testing.T) {
 	a := new(CustomTypeStruct)
-	err := NewFakeGenerator().FakeData(a)
+	err := NewFakeGenerator().FakeData(context.Background(), a)
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
 	}
@@ -652,7 +653,7 @@ func (s SampleStruct) GetName() string {
 func TestUnexportedFieldStruct(t *testing.T) {
 	// This test is to ensure that the faker won't panic if trying to fake data on struct that has unexported field
 	a := new(SampleStruct)
-	err := NewFakeGenerator().FakeData(a)
+	err := NewFakeGenerator().FakeData(context.Background(), a)
 
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
@@ -663,7 +664,7 @@ func TestUnexportedFieldStruct(t *testing.T) {
 func TestPointerToCustomScalar(t *testing.T) {
 	// This test is to ensure that the faker won't panic if trying to fake data on struct that has field
 	a := new(CustomInt)
-	err := NewFakeGenerator().FakeData(a)
+	err := NewFakeGenerator().FakeData(context.Background(), a)
 
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
@@ -678,7 +679,7 @@ type PointerCustomIntStruct struct {
 func TestPointerToCustomIntStruct(t *testing.T) {
 	// This test is to ensure that the faker won't panic if trying to fake data on struct that has field
 	a := new(PointerCustomIntStruct)
-	err := NewFakeGenerator().FakeData(a)
+	err := NewFakeGenerator().FakeData(context.Background(), a)
 
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
@@ -694,7 +695,7 @@ func TestSkipField(t *testing.T) {
 		ShouldBeSkipped int `faker:"-"`
 	}{}
 
-	err := NewFakeGenerator().FakeData(&a)
+	err := NewFakeGenerator().FakeData(context.Background(), &a)
 
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
@@ -723,7 +724,7 @@ func TestExtend(t *testing.T) {
 		}{}
 		generator := NewFakeGenerator()
 
-		err := generator.AddProvider("test", func(v reflect.Value) (interface{}, error) {
+		err := generator.AddProvider("test", func(ctx context.Context, v reflect.Value) (interface{}, error) {
 			return "test", nil
 		})
 
@@ -731,7 +732,7 @@ func TestExtend(t *testing.T) {
 			t.Error("Expected Not Error, But Got: ", err)
 		}
 
-		err = generator.FakeData(&a)
+		err = generator.FakeData(context.Background(), &a)
 
 		if err != nil {
 			t.Error("Expected Not Error, But Got: ", err)
@@ -745,7 +746,7 @@ func TestExtend(t *testing.T) {
 	t.Run("test-struct", func(t *testing.T) {
 		a := &Student{}
 		generator := NewFakeGenerator()
-		err := generator.AddProvider("custom-school", func(v reflect.Value) (interface{}, error) {
+		err := generator.AddProvider("custom-school", func(ctx context.Context, v reflect.Value) (interface{}, error) {
 
 			sch := School{
 				Location: "North Kindom",
@@ -758,7 +759,7 @@ func TestExtend(t *testing.T) {
 			t.Error("Expected Not Error, But Got: ", err)
 		}
 
-		err = generator.FakeData(&a)
+		err = generator.FakeData(context.Background(), &a)
 
 		if err != nil {
 			t.Error("Expected Not Error, But Got: ", err)
@@ -774,7 +775,7 @@ func TestExtend(t *testing.T) {
 func TestTagAlreadyExists(t *testing.T) {
 	// This test is to ensure that existing tag cannot be rewritten
 
-	err := NewFakeGenerator().AddProvider(EmailTag, func(v reflect.Value) (interface{}, error) {
+	err := NewFakeGenerator().AddProvider(EmailTag, func(ctx context.Context, v reflect.Value) (interface{}, error) {
 		return nil, nil
 	})
 
@@ -795,14 +796,14 @@ func TestTagWithPointer(t *testing.T) {
 	}
 	// With custom provider
 	generator := NewFakeGenerator()
-	err := generator.AddProvider("school", func(v reflect.Value) (interface{}, error) {
+	err := generator.AddProvider("school", func(ctx context.Context, v reflect.Value) (interface{}, error) {
 		return &School{Location: "Jakarta"}, nil
 	})
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
 	}
 	var sample TestStruct
-	err = generator.FakeData(&sample)
+	err = generator.FakeData(context.Background(), &sample)
 	if err != nil {
 		t.Error("Expected Not Error, But Got: ", err)
 	}
@@ -837,7 +838,7 @@ func TestItOverwritesDefaultValueIfKeepIsSet(t *testing.T) {
 
 	test := TestStruct{}
 
-	err := NewFakeGenerator().FakeData(&test)
+	err := NewFakeGenerator().FakeData(context.Background(), &test)
 	if err != nil {
 		t.Error("expected not error, but got: ", err)
 	}
@@ -857,7 +858,7 @@ func TestItKeepsStructPropertyWhenTagKeepIsSet(t *testing.T) {
 		FirstName: firstName,
 	}
 
-	err := NewFakeGenerator().FakeData(&test)
+	err := NewFakeGenerator().FakeData(context.Background(), &test)
 	if err != nil {
 		t.Error("expected not error, but got: ", err)
 	}
@@ -886,7 +887,7 @@ func TestFieldExclusions(t *testing.T) {
 
 	generator := NewFakeGenerator()
 	generator.AddFieldFilter("XXX.*")
-	err := generator.FakeData(&test)
+	err := generator.FakeData(context.Background(), &test)
 	if err != nil {
 		t.Error("expected not error, but got: ", err)
 	}
@@ -921,7 +922,7 @@ func TestFieldExternalTag(t *testing.T) {
 	generator := NewFakeGenerator()
 	generator.AddFieldFilter("XXX.*")
 	generator.AddFieldTag("Email", "email")
-	err := generator.FakeData(&test)
+	err := generator.FakeData(context.Background(), &test)
 	if err != nil {
 		t.Error("expected not error, but got: ", err)
 	}
@@ -963,7 +964,7 @@ func TestItThrowsAnErrorWhenKeepIsUsedOnIncomparableType(t *testing.T) {
 	withArray := TypeStructWithArray{}
 
 	for _, item := range []interface{}{withArray, withStruct, withMap, withSlice} {
-		err := NewFakeGenerator().FakeData(&item)
+		err := NewFakeGenerator().FakeData(context.Background(), &item)
 		if err == nil {
 			t.Errorf("expected error, but got nil")
 		}
@@ -977,7 +978,7 @@ func TestItThrowsAnErrorWhenPointerToInterfaceIsUsed(t *testing.T) {
 
 	interfacePtr := PtrToInterface{}
 
-	err := NewFakeGenerator().FakeData(&interfacePtr)
+	err := NewFakeGenerator().FakeData(context.Background(), &interfacePtr)
 	if err == nil {
 		t.Errorf("expected error, but got nil")
 	}
@@ -990,7 +991,7 @@ func TestItThrowsAnErrorWhenZeroValueWithKeepAndUnsupportedTagIsUsed(t *testing.
 
 	val := String{}
 
-	err := NewFakeGenerator().FakeData(&val)
+	err := NewFakeGenerator().FakeData(context.Background(), &val)
 	if err == nil {
 		t.Errorf("expected error, but got nil")
 	}
@@ -999,7 +1000,7 @@ func TestItThrowsAnErrorWhenZeroValueWithKeepAndUnsupportedTagIsUsed(t *testing.
 func TestCustomMapping(t *testing.T) {
 	t.Run("custom-mapping-inner-field", func(t *testing.T) {
 		fd := NewFakeGenerator()
-		err := fd.AddProvider("PageSize", func(v reflect.Value) (interface{}, error) {
+		err := fd.AddProvider("PageSize", func(ctx context.Context, v reflect.Value) (interface{}, error) {
 			return 5, nil
 		})
 		if err != nil {
@@ -1008,7 +1009,7 @@ func TestCustomMapping(t *testing.T) {
 		fd.AddFieldTag("PageSize", "PageSize")
 
 		data := &ServiceRequest{}
-		err = fd.FakeData(data)
+		err = fd.FakeData(context.Background(), data)
 
 		if err != nil {
 			t.Errorf("unexpected error %s", err)
@@ -1019,8 +1020,8 @@ func TestCustomMapping(t *testing.T) {
 	})
 	t.Run("custom-mapping-list-string", func(t *testing.T) {
 		fd := NewFakeGenerator()
-		err := fd.AddProvider("Companies", func(v reflect.Value) (interface{}, error) {
-			return []interface{} {"company1", "company2"}, nil
+		err := fd.AddProvider("Companies", func(ctx context.Context, v reflect.Value) (interface{}, error) {
+			return []interface{}{"company1", "company2"}, nil
 		})
 		if err != nil {
 			t.Errorf("unexpected error %s", err)
@@ -1028,7 +1029,7 @@ func TestCustomMapping(t *testing.T) {
 		fd.AddFieldTag("Companies", "Companies")
 
 		data := &ServiceRequest{}
-		err = fd.FakeData(data)
+		err = fd.FakeData(context.Background(), data)
 
 		if err != nil {
 			t.Errorf("unexpected error %s", err)
@@ -1046,10 +1047,10 @@ func TestCustomMapping(t *testing.T) {
 	})
 	t.Run("custom-mapping-list-data", func(t *testing.T) {
 		fd := NewFakeGenerator()
-		err := fd.AddProvider("Addresses", func(v reflect.Value) (interface{}, error) {
-			val1 := map[interface{}]interface{} {"City": "New York"}
-			val2 := map[interface{}]interface{} {"Street": "W 9th"}
-			return []interface{} {val1, val2}, nil
+		err := fd.AddProvider("Addresses", func(ctx context.Context, v reflect.Value) (interface{}, error) {
+			val1 := map[interface{}]interface{}{"City": "New York"}
+			val2 := map[interface{}]interface{}{"Street": "W 9th"}
+			return []interface{}{val1, val2}, nil
 		})
 		if err != nil {
 			t.Errorf("unexpected error %s", err)
@@ -1057,7 +1058,7 @@ func TestCustomMapping(t *testing.T) {
 		fd.AddFieldTag("Addresses", "Addresses")
 
 		data := &ServiceRequest{}
-		err = fd.FakeData(data)
+		err = fd.FakeData(context.Background(), data)
 
 		if err != nil {
 			t.Errorf("unexpected error %s", err)
@@ -1075,13 +1076,13 @@ func TestCustomMapping(t *testing.T) {
 	})
 	t.Run("custom-mapping-struct", func(t *testing.T) {
 		fd := NewFakeGenerator()
-		err := fd.AddProvider("Page", func(v reflect.Value) (i interface{}, e error) {
-			return map[interface{}]interface{} {"PageNum": 10}, nil
+		err := fd.AddProvider("Page", func(ctx context.Context, v reflect.Value) (i interface{}, e error) {
+			return map[interface{}]interface{}{"PageNum": 10}, nil
 		})
 		fd.AddFieldTag("Page", "Page")
 
 		data := &ServiceRequest{}
-		err = fd.FakeData(data)
+		err = fd.FakeData(context.Background(), data)
 
 		if err != nil {
 			t.Errorf("unexpected error %s", err)
@@ -1094,13 +1095,13 @@ func TestCustomMapping(t *testing.T) {
 	t.Run("custom-enum", func(t *testing.T) {
 		fd := NewFakeGenerator()
 
-		fd.AddProvider("Amt", func(v reflect.Value) (i interface{}, e error) {
+		fd.AddProvider("Amt", func(ctx context.Context, v reflect.Value) (i interface{}, e error) {
 			return 5, nil
 		})
 		fd.AddFieldTag("Amt", "Amt")
 		data := &ServiceRequest{}
 
-		err := fd.FakeData(data)
+		err := fd.FakeData(context.Background(), data)
 
 		if err != nil {
 			t.Errorf("unexpected error %s", err)
@@ -1131,5 +1132,5 @@ type ServiceRequest struct {
 	Companies []string
 	Addresses []Addr
 	Page      Pagination
-	Amt	      Amount
+	Amt       Amount
 }

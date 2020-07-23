@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"math/rand"
 	"reflect"
 )
@@ -25,8 +26,8 @@ func SetAddress(net Addresser) {
 
 // Addresser is logical layer for Address
 type Addresser interface {
-	Latitude(v reflect.Value) (interface{}, error)
-	Longitude(v reflect.Value) (interface{}, error)
+	Latitude(ctx context.Context, v reflect.Value) (interface{}, error)
+	Longitude(ctx context.Context, v reflect.Value) (interface{}, error)
 }
 
 // Address struct
@@ -37,7 +38,7 @@ func (i Address) latitute() float32 {
 }
 
 // Latitude sets latitude of the address
-func (i Address) Latitude(v reflect.Value) (interface{}, error) {
+func (i Address) Latitude(ctx context.Context, v reflect.Value) (interface{}, error) {
 	kind := v.Kind()
 	val := i.latitute()
 	if kind == reflect.Float32 {
@@ -51,7 +52,7 @@ func (i Address) longitude() float32 {
 }
 
 // Longitude sets longitude of the address
-func (i Address) Longitude(v reflect.Value) (interface{}, error) {
+func (i Address) Longitude(ctx context.Context, v reflect.Value) (interface{}, error) {
 	kind := v.Kind()
 	val := i.longitude()
 	if kind == reflect.Float32 {

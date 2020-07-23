@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net"
@@ -43,14 +44,14 @@ func SetNetwork(net Networker) {
 
 // Networker is logical layer for Internet
 type Networker interface {
-	Email(v reflect.Value) (interface{}, error)
-	MacAddress(v reflect.Value) (interface{}, error)
-	DomainName(v reflect.Value) (interface{}, error)
-	URL(v reflect.Value) (interface{}, error)
-	UserName(v reflect.Value) (interface{}, error)
-	IPv4(v reflect.Value) (interface{}, error)
-	IPv6(v reflect.Value) (interface{}, error)
-	Password(v reflect.Value) (interface{}, error)
+	Email(ctx context.Context, v reflect.Value) (interface{}, error)
+	MacAddress(ctx context.Context, v reflect.Value) (interface{}, error)
+	DomainName(ctx context.Context, v reflect.Value) (interface{}, error)
+	URL(ctx context.Context, v reflect.Value) (interface{}, error)
+	UserName(ctx context.Context, v reflect.Value) (interface{}, error)
+	IPv4(ctx context.Context, v reflect.Value) (interface{}, error)
+	IPv6(ctx context.Context, v reflect.Value) (interface{}, error)
+	Password(ctx context.Context, v reflect.Value) (interface{}, error)
 }
 
 // Internet struct
@@ -61,7 +62,7 @@ func (internet Internet) email() string {
 }
 
 // Email generates random email id
-func (internet Internet) Email(v reflect.Value) (interface{}, error) {
+func (internet Internet) Email(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.email(), nil
 }
 
@@ -80,7 +81,7 @@ func (internet Internet) macAddress() string {
 }
 
 // MacAddress generates random MacAddress
-func (internet Internet) MacAddress(v reflect.Value) (interface{}, error) {
+func (internet Internet) MacAddress(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.macAddress(), nil
 }
 
@@ -95,7 +96,7 @@ func (internet Internet) domainName() string {
 }
 
 // DomainName generates random domain name
-func (internet Internet) DomainName(v reflect.Value) (interface{}, error) {
+func (internet Internet) DomainName(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.domainName(), nil
 }
 
@@ -115,7 +116,7 @@ func (internet Internet) url() string {
 }
 
 // URL generates random URL standardised in urlFormats const
-func (internet Internet) URL(v reflect.Value) (interface{}, error) {
+func (internet Internet) URL(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.url(), nil
 }
 
@@ -130,7 +131,7 @@ func (internet Internet) username() string {
 }
 
 // UserName generates random username
-func (internet Internet) UserName(v reflect.Value) (interface{}, error) {
+func (internet Internet) UserName(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.username(), nil
 }
 
@@ -150,7 +151,7 @@ func (internet Internet) ipv4() string {
 }
 
 // IPv4 generates random IPv4 address
-func (internet Internet) IPv4(v reflect.Value) (interface{}, error) {
+func (internet Internet) IPv4(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.ipv4(), nil
 }
 
@@ -170,7 +171,7 @@ func (internet Internet) ipv6() string {
 }
 
 // IPv6 generates random IPv6 address
-func (internet Internet) IPv6(v reflect.Value) (interface{}, error) {
+func (internet Internet) IPv6(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.ipv6(), nil
 }
 
@@ -185,7 +186,7 @@ func (internet Internet) password() string {
 }
 
 // Password returns a hashed password
-func (internet Internet) Password(v reflect.Value) (interface{}, error) {
+func (internet Internet) Password(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return internet.password(), nil
 }
 

@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"reflect"
@@ -607,17 +608,17 @@ const (
 
 // A DateTimer contains random Time generators, returning time string in certain particular format
 type DateTimer interface {
-	UnixTime(v reflect.Value) (interface{}, error)
-	Date(v reflect.Value) (interface{}, error)
-	Time(v reflect.Value) (interface{}, error)
-	MonthName(v reflect.Value) (interface{}, error)
-	Year(v reflect.Value) (interface{}, error)
-	DayOfWeek(v reflect.Value) (interface{}, error)
-	DayOfMonth(v reflect.Value) (interface{}, error)
-	Timestamp(v reflect.Value) (interface{}, error)
-	Century(v reflect.Value) (interface{}, error)
-	TimeZone(v reflect.Value) (interface{}, error)
-	TimePeriod(v reflect.Value) (interface{}, error)
+	UnixTime(ctx context.Context, v reflect.Value) (interface{}, error)
+	Date(ctx context.Context, v reflect.Value) (interface{}, error)
+	Time(ctx context.Context, v reflect.Value) (interface{}, error)
+	MonthName(ctx context.Context, v reflect.Value) (interface{}, error)
+	Year(ctx context.Context, v reflect.Value) (interface{}, error)
+	DayOfWeek(ctx context.Context, v reflect.Value) (interface{}, error)
+	DayOfMonth(ctx context.Context, v reflect.Value) (interface{}, error)
+	Timestamp(ctx context.Context, v reflect.Value) (interface{}, error)
+	Century(ctx context.Context, v reflect.Value) (interface{}, error)
+	TimeZone(ctx context.Context, v reflect.Value) (interface{}, error)
+	TimePeriod(ctx context.Context, v reflect.Value) (interface{}, error)
 }
 
 var date DateTimer
@@ -647,7 +648,7 @@ func (d DateTime) unixtime() int64 {
 }
 
 // UnixTime get unix time
-func (d DateTime) UnixTime(v reflect.Value) (interface{}, error) {
+func (d DateTime) UnixTime(ctx context.Context, v reflect.Value) (interface{}, error) {
 	kind := v.Kind()
 	var val int64
 	if kind == reflect.Int64 {
@@ -670,7 +671,7 @@ func (d DateTime) date() string {
 }
 
 // Date formats DateTime using example BaseDateFormat const
-func (d DateTime) Date(v reflect.Value) (interface{}, error) {
+func (d DateTime) Date(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.date(), nil
 }
 
@@ -685,7 +686,7 @@ func (d DateTime) time() string {
 }
 
 // Time formats DateTime using example Time const
-func (d DateTime) Time(v reflect.Value) (interface{}, error) {
+func (d DateTime) Time(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.time(), nil
 }
 
@@ -700,7 +701,7 @@ func (d DateTime) monthName() string {
 }
 
 // MonthName formats DateTime using example Month const
-func (d DateTime) MonthName(v reflect.Value) (interface{}, error) {
+func (d DateTime) MonthName(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.monthName(), nil
 }
 
@@ -715,7 +716,7 @@ func (d DateTime) year() string {
 }
 
 // Year formats DateTime using example Year const
-func (d DateTime) Year(v reflect.Value) (interface{}, error) {
+func (d DateTime) Year(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.year(), nil
 }
 
@@ -730,7 +731,7 @@ func (d DateTime) dayOfWeek() string {
 }
 
 // DayOfWeek formats DateTime using example Day const
-func (d DateTime) DayOfWeek(v reflect.Value) (interface{}, error) {
+func (d DateTime) DayOfWeek(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.dayOfWeek(), nil
 }
 
@@ -745,7 +746,7 @@ func (d DateTime) dayOfMonth() string {
 }
 
 // DayOfMonth formats DateTime using example DayOfMonth const
-func (d DateTime) DayOfMonth(v reflect.Value) (interface{}, error) {
+func (d DateTime) DayOfMonth(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.dayOfMonth(), nil
 }
 
@@ -760,7 +761,7 @@ func (d DateTime) timestamp() string {
 }
 
 // Timestamp formats DateTime using example Timestamp const
-func (d DateTime) Timestamp(v reflect.Value) (interface{}, error) {
+func (d DateTime) Timestamp(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.timestamp(), nil
 }
 
@@ -775,7 +776,7 @@ func (d DateTime) century() string {
 }
 
 // Century returns a random century
-func (d DateTime) Century(v reflect.Value) (interface{}, error) {
+func (d DateTime) Century(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.century(), nil
 }
 
@@ -790,7 +791,7 @@ func (d DateTime) timezone() string {
 }
 
 // TimeZone returns a random timezone
-func (d DateTime) TimeZone(v reflect.Value) (interface{}, error) {
+func (d DateTime) TimeZone(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.timezone(), nil
 }
 
@@ -805,7 +806,7 @@ func (d DateTime) period() string {
 }
 
 // TimePeriod formats DateTime using example TimePeriod const
-func (d DateTime) TimePeriod(v reflect.Value) (interface{}, error) {
+func (d DateTime) TimePeriod(ctx context.Context, v reflect.Value) (interface{}, error) {
 	return d.period(), nil
 }
 

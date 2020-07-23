@@ -1,13 +1,14 @@
 package fakegen
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"testing"
 )
 
 func TestPhoneNumber(t *testing.T) {
-	ph, err := GetPhoner().PhoneNumber(reflect.Value{})
+	ph, err := GetPhoner().PhoneNumber(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
@@ -17,7 +18,7 @@ func TestPhoneNumber(t *testing.T) {
 }
 
 func TestTollFreePhoneNumber(t *testing.T) {
-	ph, err := GetPhoner().TollFreePhoneNumber(reflect.Value{})
+	ph, err := GetPhoner().TollFreePhoneNumber(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
@@ -27,7 +28,7 @@ func TestTollFreePhoneNumber(t *testing.T) {
 }
 
 func TestE164PhoneNumber(t *testing.T) {
-	ph, err := GetPhoner().E164PhoneNumber(reflect.Value{})
+	ph, err := GetPhoner().E164PhoneNumber(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}

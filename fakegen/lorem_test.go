@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -12,7 +13,7 @@ func TestDataFaker(t *testing.T) {
 }
 
 func TestWord(t *testing.T) {
-	word, err := GetLorem().Word(reflect.Value{})
+	word, err := GetLorem().Word(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
@@ -22,7 +23,7 @@ func TestWord(t *testing.T) {
 }
 
 func TestSentence(t *testing.T) {
-	res, err := GetLorem().Sentence(reflect.Value{})
+	res, err := GetLorem().Sentence(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
@@ -33,7 +34,7 @@ func TestSentence(t *testing.T) {
 }
 
 func TestParagraph(t *testing.T) {
-	res, err := GetLorem().Paragraph(reflect.Value{})
+	res, err := GetLorem().Paragraph(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}

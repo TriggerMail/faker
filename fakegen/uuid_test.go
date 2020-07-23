@@ -1,6 +1,7 @@
 package fakegen
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -9,7 +10,7 @@ import (
 
 func TestDigit(t *testing.T) {
 	p := GetIdentifier()
-	uuid, err := p.Digit(reflect.Value{})
+	uuid, err := p.Digit(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
@@ -20,7 +21,7 @@ func TestDigit(t *testing.T) {
 
 func TestHyphenated(t *testing.T) {
 	p := GetIdentifier()
-	uuid, err := p.Hyphenated(reflect.Value{})
+	uuid, err := p.Hyphenated(context.Background(), reflect.Value{})
 	if err != nil {
 		t.Error("Expected  not error, got err", err)
 	}
